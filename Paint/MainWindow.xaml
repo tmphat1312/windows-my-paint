@@ -1,0 +1,307 @@
+﻿<Fluent:RibbonWindow x:Class="Paint.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Fluent="clr-namespace:Fluent;assembly=Fluent"
+        xmlns:local="clr-namespace:Paint"
+        mc:Ignorable="d"
+        Title="My CroSoft Paint" 
+        Height="700" 
+        Width="1250" 
+        Loaded="RibbonWindow_Loaded">
+
+    <!--Styles-->
+    <Fluent:RibbonWindow.Resources>
+        <Style x:Key="DisableMouseOver" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Image">
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+        </Style>
+    </Fluent:RibbonWindow.Resources>
+    
+    <DockPanel LastChildFill="True">
+        <Fluent:Ribbon DockPanel.Dock="Top">
+            <Fluent:Ribbon.Resources>
+                <Style TargetType="Fluent:Button">
+                    <Setter Property="Padding" Value="4,4,4,0"/>
+                </Style>
+            </Fluent:Ribbon.Resources>
+            
+            <Fluent:RibbonTabItem Header="Toolbox">
+                <!--File-->
+                <Fluent:RibbonGroupBox Header="File">
+                    <Fluent:Button Header="New" Name="createNewButton" Click="createNewButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Images/new_file.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                    <Fluent:Button Header="Open" Name="openFileButton" Click="openFileButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Images/open.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                    <Fluent:Button Header="Export" Name="exportButton" Click="exportButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Images/export.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                    <!--<Fluent:Button Header="Import" Icon="Images/import.png" Name="importButton" Click="importButton_Click"/>-->
+                </Fluent:RibbonGroupBox>
+                
+                <!--Tools-->
+                <Fluent:RibbonGroupBox Header="Tools">
+                    <Fluent:Button Name="EditMode" Header="Draw Mode" Click="EditMode_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Images/edit.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
+                    <Fluent:Button Header="Save" Name="saveFileButton" Click="saveFileButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Images/save.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
+                    <Fluent:Button Name="undoButton" Header="Undo" Click="undoButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/undo.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
+                    <Fluent:Button Name="redoButton" Header="Redo" Click="redoButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/redo.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
+                    <Fluent:Button Name="Delete" Header="Delete" Click="Delete_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/delete.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                </Fluent:RibbonGroupBox>
+                
+                <!--Clipboard-->
+                <Fluent:RibbonGroupBox Header="Clipboard">
+                    <Fluent:Button Name="pasteButton" Header="Paste" Click="pasteButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/paste.png"></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
+                    <Fluent:Button Name="copyButton" Header="Copy" Click="copyButton_Click">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/copy.png" ></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+                </Fluent:RibbonGroupBox>
+
+                <!--Shapes-->
+                <Fluent:RibbonGroupBox Header="Shapes">
+                    <ListView Name="iconListView" Width="200" Height="60" Margin="8,8,8,0" SelectionChanged="iconListView_SelectionChanged"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding Icon}" Width="25" Height="25" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+
+                        <ListView.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ListView.ItemsPanel>
+
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="ToolTip" Value="{Binding Name}"/>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                    </ListView>
+                </Fluent:RibbonGroupBox>
+
+                <!--Size-->
+                <Fluent:RibbonGroupBox Header="Style">
+                    <StackPanel Orientation="Vertical" Margin="4,4,4,0" HorizontalAlignment="Center">
+                        <Image Source="Images/thickness.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="5"
+                                   Width="40" HorizontalAlignment="Center"/>
+
+                        <Fluent:ComboBox x:Name="sizeComboBox" Height="20" IsEditable="False" HorizontalAlignment="Center"
+                                             SelectionChanged="sizeComboBox_SelectionChanged" Margin="0,8,0,0">
+                            <ComboBoxItem IsSelected="True" Content="1 pixel"/>
+                            <ComboBoxItem Content="2 pixel"/>
+                            <ComboBoxItem Content="3 pixel"/>
+                            <ComboBoxItem Content="5 pixel"/>
+                        </Fluent:ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Vertical" Margin="4,4,4,0" HorizontalAlignment="Center">
+                        <Image Source="Images/dash.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="5"
+                                   Width="40" HorizontalAlignment="Center"/>
+
+                        <Fluent:ComboBox x:Name="dashComboBox" Height="20" IsEditable="False" HorizontalAlignment="Center"
+                                             SelectionChanged="dashComboBox_SelectionChanged">
+                            <ComboBoxItem IsSelected="True">
+                                <TextBlock Text="__________" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <TextBlock Text="_.._.._.._.." FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </ComboBoxItem>
+
+                            <ComboBoxItem>
+                                <TextBlock Text="............" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </ComboBoxItem>
+
+                            <ComboBoxItem>
+                                <TextBlock Text="_ _ _ _ _ _ " FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </ComboBoxItem>
+                        </Fluent:ComboBox>
+                    </StackPanel>
+                </Fluent:RibbonGroupBox>
+
+                <!--Colors-->
+                <Fluent:RibbonGroupBox Header="Colors" Width="300" >
+                    <StackPanel Orientation="Horizontal">
+
+                        <Grid  Margin="20,5,0,2" Width="200">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                                <ColumnDefinition Width="1*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*" />
+                                <RowDefinition Height="1*" />
+                            </Grid.RowDefinitions>
+
+
+                            <Border Grid.Column="0" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
+                                                                Width="28" Height="28"/>
+                            <Button Name="btnBasicBlack" Grid.Column="0" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Black" Click="btnBasicBlack_Click"></Button>
+
+
+                            <Border Grid.Column="1" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
+                                                                Width="28" Height="28"/>
+                            <Button Name="btnBasicGray" Grid.Column="1" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Gray" Click="btnBasicGray_Click"></Button>
+
+                            <Border Grid.Column="2" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
+                                                            Width="28" Height="28"/>
+                            <Button Name="btnBasicRed" Grid.Column="2" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Red" Click="btnBasicRed_Click"></Button>
+
+                            <Border Grid.Column="3" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
+                                                        Width="28" Height="28"/>
+                            <Button Name="btnBasicOrange" Grid.Column="3" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Orange" Click="btnBasicOrange_Click"></Button>
+
+                            <Border Grid.Column="4" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
+                                                            Width="28" Height="28"/>
+                            <Button Name="btnBasicYellow" Grid.Column="4" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                                Background="Yellow" Click="btnBasicYellow_Click"></Button>
+
+
+                            <Border Grid.Column="0" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
+                                                    Width="28" Height="28"/>
+                            <Button Name="btnBasicBlue" Grid.Column="0" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Blue" Click="btnBasicBlue_Click"></Button>
+
+                            <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
+                                                    Width="28" Height="28"/>
+                            <Button Name="btnBasicGreen" Grid.Column="1" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Green" Click="btnBasicGreen_Click"></Button>
+
+                            <Border Grid.Column="2" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
+                                                Width="28" Height="28"/>
+                            <Button Name="btnBasicPurple" Grid.Column="2" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                                    Background="Purple" Click="btnBasicPurple_Click">
+                            </Button>
+
+                            <Border Grid.Column="3" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
+                                            Width="28" Height="28"/>
+                            <Button Name="btnBasicPink" Grid.Column="3" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                            Background="Pink" Click="btnBasicPink_Click"></Button>
+
+                            <Border Grid.Column="4" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
+                                                Width="28" Height="28"/>
+                            <Button Name="btnBasicBrown" Grid.Column="4" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
+                                                Background="Brown" Click="btnBasicBrown_Click"></Button>
+                        </Grid>
+
+                        <Fluent:Button Name="editColorButton" Header="Edit Colors" Click="editColorButton_Click" Padding="4,4,4,0">
+                            <Fluent:Button.LargeIcon>
+                                <Image Source="Images/color_wheel.png" RenderOptions.BitmapScalingMode="HighQuality"></Image>
+                            </Fluent:Button.LargeIcon>
+                        </Fluent:Button>
+                    </StackPanel>
+
+                </Fluent:RibbonGroupBox>
+            </Fluent:RibbonTabItem>
+        </Fluent:Ribbon>
+        
+        <Fluent:StatusBar DockPanel.Dock="Bottom">
+            <Fluent:StatusBarItem 
+                Title="Font size"
+                Value="12px"
+                Margin="20,0,0,0"
+                HorizontalAlignment="Left">
+                <TextBlock>
+                    <Run Text="Font size: "/>
+                    <Run Text="12px" />
+                </TextBlock>
+            </Fluent:StatusBarItem>
+
+            <Separator HorizontalAlignment="Left" />
+
+            <Fluent:StatusBarItem 
+                Title="Current mode"
+                Value="Drawing"
+                HorizontalAlignment="Left">
+                <TextBlock>
+                    <Run Text="Current mode: "/>
+                    <Run Text="Drawing" />
+                </TextBlock>
+            </Fluent:StatusBarItem>
+
+            <Fluent:StatusBarItem 
+                Title="App"
+                Value="My Crosoft Paint"
+                HorizontalAlignment="Right"
+                Content="My CroSoft Paint"
+                Margin="0,0,20,0"
+                />
+        </Fluent:StatusBar>
+
+        <!--Drawing area-->
+        <Grid>
+            <Border 
+                Background="Transparent" 
+                IsHitTestVisible="True" 
+                MouseDown="drawingArea_MouseDown" 
+                MouseUp="drawingArea_MouseUp"
+                MouseMove="drawingArea_MouseMove" 
+                MouseEnter="drawingArea_MouseEnter" 
+                MouseLeave="drawingArea_MouseLeave"/>
+            <Canvas 
+                Name="drawingArea" 
+                IsHitTestVisible="False" 
+                ClipToBounds="True" 
+                Background="White" />
+        </Grid>
+    </DockPanel>
+</Fluent:RibbonWindow>

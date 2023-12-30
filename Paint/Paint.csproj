@@ -1,0 +1,113 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\Icons\copy.png" />
+    <None Remove="Assets\Icons\delete.png" />
+    <None Remove="Assets\Icons\drawing-mode.png" />
+    <None Remove="Assets\Icons\edit-mode.png" />
+    <None Remove="Assets\Icons\paste.png" />
+    <None Remove="Assets\Icons\redo.png" />
+    <None Remove="Assets\Icons\undo.png" />
+    <None Remove="Images\circle.png" />
+    <None Remove="Images\color_wheel.png" />
+    <None Remove="Images\copy.png" />
+    <None Remove="Images\cut.png" />
+    <None Remove="Images\dash.png" />
+    <None Remove="Images\delete.png" />
+    <None Remove="Images\edit.png" />
+    <None Remove="Images\ellipse.png" />
+    <None Remove="Images\export.png" />
+    <None Remove="Images\fill.png" />
+    <None Remove="Images\import.png" />
+    <None Remove="Images\line.png" />
+    <None Remove="Images\new_file.png" />
+    <None Remove="Images\open.png" />
+    <None Remove="Images\paste.png" />
+    <None Remove="Images\rectangle.png" />
+    <None Remove="Images\redo.png" />
+    <None Remove="Images\save.png" />
+    <None Remove="Images\save_as.png" />
+    <None Remove="Images\size.png" />
+    <None Remove="Images\square.png" />
+    <None Remove="Images\text.png" />
+    <None Remove="Images\thickness.png" />
+    <None Remove="Images\undo.png" />
+    <None Remove="Images\zoom_in.png" />
+    <None Remove="Images\zoom_out.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1" />
+    <PackageReference Include="Fluent.Ribbon" Version="10.0.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Circle2D\Circle2D.csproj" />
+    <ProjectReference Include="..\Contract\Contract.csproj" />
+    <ProjectReference Include="..\Ellipse2D\Ellipse2D.csproj" />
+    <ProjectReference Include="..\Line2D\Line2D.csproj" />
+    <ProjectReference Include="..\Rectangle2D\Rectangle2D.csproj" />
+    <ProjectReference Include="..\Square2D\Square2D.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\Icons\copy.png" />
+    <Resource Include="Assets\Icons\delete.png" />
+    <Resource Include="Assets\Icons\drawing-mode.png" />
+    <Resource Include="Assets\Icons\edit-mode.png" />
+    <Resource Include="Assets\Icons\paste.png" />
+    <Resource Include="Assets\Icons\redo.png" />
+    <Resource Include="Assets\Icons\undo.png" />
+    <Resource Include="Images\circle.png" />
+    <Resource Include="Images\color_wheel.png" />
+    <Resource Include="Images\copy.png" />
+    <Resource Include="Images\cut.png" />
+    <Resource Include="Images\dash.png" />
+    <Resource Include="Images\delete.png" />
+    <Resource Include="Images\edit.png" />
+    <Resource Include="Images\ellipse.png" />
+    <Resource Include="Images\export.png" />
+    <Resource Include="Images\fill.png" />
+    <Resource Include="Images\import.png" />
+    <Resource Include="Images\line.png" />
+    <Resource Include="Images\new_file.png" />
+    <Resource Include="Images\open.png" />
+    <Resource Include="Images\paste.png" />
+    <Resource Include="Images\rectangle.png" />
+    <Resource Include="Images\redo.png" />
+    <Resource Include="Images\save.png" />
+    <Resource Include="Images\save_as.png" />
+    <Resource Include="Images\size.png" />
+    <Resource Include="Images\square.png" />
+    <Resource Include="Images\text.png" />
+    <Resource Include="Images\thickness.png" />
+    <Resource Include="Images\undo.png" />
+    <Resource Include="Images\zoom_in.png" />
+    <Resource Include="Images\zoom_out.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>
