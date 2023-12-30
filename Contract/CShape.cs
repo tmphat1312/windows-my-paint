@@ -35,46 +35,56 @@ public class CShape
         ControlPoint diagPointTopLeft = new DiagPoint();
         //diagPointTopLeft.setPoint(LeftTop.X, LeftTop.Y);
         diagPointTopLeft.Point = LeftTop;
+        diagPointTopLeft.CentrePoint = this.GetCenterPoint();
 
         ControlPoint diagPointBottomLeft = new DiagPoint();
         //diagPointBottomLeft.setPoint(LeftTop.X, RightBottom.Y);
         diagPointBottomLeft.Point = new Point2D() { X = LeftTop.X, Y = RightBottom.Y };
+        diagPointBottomLeft.CentrePoint = this.GetCenterPoint();
 
         ControlPoint diagPointTopRight = new DiagPoint();
         //diagPointTopRight.setPoint(RightBottom.X, LeftTop.Y);
         diagPointTopRight.Point = new Point2D() { X = RightBottom.X, Y = LeftTop.Y };
+        diagPointTopRight.CentrePoint = this.GetCenterPoint();
 
         ControlPoint diagPointBottomRight = new DiagPoint();
         //diagPointBottomRight.setPoint(RightBottom.X, RightBottom.Y);
         diagPointBottomRight.Point = RightBottom;
+        diagPointBottomRight.CentrePoint = this.GetCenterPoint();
 
         //one way control Point
 
         ControlPoint diagPointRight = new OneSidePoint();
         //diagPointRight.setPoint(RightBottom.X, (RightBottom.Y + LeftTop.Y) / 2);
         diagPointRight.Point = new Point2D() { X = RightBottom.X, Y = (RightBottom.Y + LeftTop.Y) / 2 };
+        diagPointRight.CentrePoint = this.GetCenterPoint();
 
         ControlPoint diagPointLeft = new OneSidePoint();
         //diagPointLeft.setPoint(LeftTop.X, (RightBottom.Y + LeftTop.Y) / 2);
         diagPointLeft.Point = new Point2D() { X = LeftTop.X, Y = (RightBottom.Y + LeftTop.Y) / 2 };
+        diagPointLeft.CentrePoint = this.GetCenterPoint();
 
         ControlPoint diagPointTop = new OneSidePoint();
         //diagPointTop.setPoint((LeftTop.X + RightBottom.X) / 2, LeftTop.Y);
         diagPointTop.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = LeftTop.Y };
+        diagPointTop.CentrePoint = this.GetCenterPoint();
 
         ControlPoint diagPointBottom = new OneSidePoint();
         //diagPointBottom.setPoint((LeftTop.X + RightBottom.X) / 2, RightBottom.Y);
         diagPointBottom.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = RightBottom.Y };
+        diagPointBottom.CentrePoint = this.GetCenterPoint();
 
 
         ControlPoint angleControlPoint = new RotatePoint();
         //angleControlPoint.setPoint((RightBottom.X + LeftTop.X) / 2, Math.Min(RightBottom.Y, LeftTop.Y) - 50);
         angleControlPoint.Point = new Point2D() { X = (RightBottom.X + LeftTop.X) / 2, Y = Math.Min(RightBottom.Y, LeftTop.Y) - 50 };
+        angleControlPoint.CentrePoint = this.GetCenterPoint();
 
         ControlPoint moveControlPoint = new ControlPoint();
         //moveControlPoint.setPoint((LeftTop.X + RightBottom.X) / 2, (LeftTop.Y + RightBottom.Y) / 2);
         moveControlPoint.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = (LeftTop.Y + RightBottom.Y) / 2 };
         moveControlPoint.Type = "move";
+        moveControlPoint.CentrePoint = this.GetCenterPoint();
 
         controlPoints.Add(diagPointTopLeft);
         controlPoints.Add(diagPointTopRight);

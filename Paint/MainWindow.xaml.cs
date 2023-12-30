@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Diagnostics;
 
 namespace Paint;
 
@@ -46,6 +47,8 @@ public partial class MainWindow : Fluent.RibbonWindow
     public double PreviousEditedX { get; set; } = -1;
     public double PreviousEditedY { get; set; } = -1;
     public List<ControlPoint> CtrlPoint { get; set; } = [];
+    public string SelectedCtrlPointEdge { get; set; } = string.Empty;
+    public string SelectedCtrlPointType { get; set; } = string.Empty;
     #endregion
 
     #region Canvas drawing variables
@@ -324,6 +327,23 @@ public partial class MainWindow : Fluent.RibbonWindow
                 RedrawCanvas();
                 return;
             }
+
+            Point currentPos = e.GetPosition(drawingArea);
+            if (ChosenShapes.Count > 0)
+            {
+                CShape chosen = (CShape)ChosenShapes[0];
+                if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
+                {
+                    for (int i = 0; i < CtrlPoint.Count; i++)
+                    {
+                        if (CtrlPoint[i].IsHovering(chosen.RotateAngle, currentPos.X, currentPos.Y))
+                        {
+                            SelectedCtrlPointEdge = CtrlPoint[i].getEdge(chosen.RotateAngle);
+                            SelectedCtrlPointType = CtrlPoint[i].Type;
+                        }
+                    }
+                }
+            }
             return;
         }
 
@@ -344,7 +364,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             Point currentPos1 = e.GetPosition(drawingArea);
             for (int i = 0; i < CtrlPoint.Count; i++)
             {
-                if (CtrlPoint[i].IsHovering(shape1.RotateAngle, currentPos1.X, currentPos1.Y))
+                if (CtrlPoint[i].IsHovering(shape1.RotateAngle, currentPos1.X, currentPos1.Y) || CtrlPoint[i].IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape1.RotateAngle))
                 {
                     switch (CtrlPoint[i].getEdge(shape1.RotateAngle))
                     {
@@ -494,7 +514,7 @@ public partial class MainWindow : Fluent.RibbonWindow
                                 index = 3;
                         };
 
-                    if (ctrlPoint.IsHovering(shape.RotateAngle, currentPos.X, currentPos.Y))
+                    if (ctrlPoint.IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape.RotateAngle))
                     {
                         switch (ctrlPoint.Type)
                         {
@@ -555,56 +575,56 @@ public partial class MainWindow : Fluent.RibbonWindow
                                             {
                                                 edges[rotateList[index][0]].SetCord(handledXY.X);
                                                 edges[rotateList[index][1]].SetCord(handledXY.Y);
-                                                edges[rotateList[index][2]].SetCord(-handledXY.X);
-                                                edges[rotateList[index][3]].SetCord(-handledXY.Y);
+                                                //edges[rotateList[index][2]].SetCord(-handledXY.X);
+                                                //edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "topright":
                                             {
                                                 edges[rotateList[index][2]].SetCord(handledXY.X);
                                                 edges[rotateList[index][1]].SetCord(handledXY.Y);
-                                                edges[rotateList[index][0]].SetCord(-handledXY.X);
-                                                edges[rotateList[index][3]].SetCord(-handledXY.Y);
+                                                //edges[rotateList[index][0]].SetCord(-handledXY.X);
+                                                //edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottomright":
                                             {
                                                 edges[rotateList[index][2]].SetCord(handledXY.X);
                                                 edges[rotateList[index][3]].SetCord(handledXY.Y);
-                                                edges[rotateList[index][0]].SetCord(-handledXY.X);
-                                                edges[rotateList[index][1]].SetCord(-handledXY.Y);
+                                                //edges[rotateList[index][0]].SetCord(-handledXY.X);
+                                                //edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottomleft":
                                             {
                                                 edges[rotateList[index][0]].SetCord(handledXY.X);
                                                 edges[rotateList[index][3]].SetCord(handledXY.Y);
-                                                edges[rotateList[index][2]].SetCord(-handledXY.X);
-                                                edges[rotateList[index][1]].SetCord(-handledXY.Y);
+                                                //edges[rotateList[index][2]].SetCord(-handledXY.X);
+                                                //edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "right":
                                             {
                                                 edges[rotateList[index][2]].SetCord(handledXY.X);
-                                                edges[rotateList[index][0]].SetCord(-handledXY.X);
+                                                //edges[rotateList[index][0]].SetCord(-handledXY.X);
                                                 break;
                                             }
                                         case "left":
                                             {
                                                 edges[rotateList[index][0]].SetCord(handledXY.X);
-                                                edges[rotateList[index][2]].SetCord(-handledXY.X);
+                                                //edges[rotateList[index][2]].SetCord(-handledXY.X);
                                                 break;
                                             }
                                         case "top":
                                             {
-                                                edges[rotateList[index][1]].SetCord(handledXY.Y);
+                                                //edges[rotateList[index][1]].SetCord(handledXY.Y);
                                                 edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottom":
                                             {
                                                 edges[rotateList[index][3]].SetCord(handledXY.Y);
-                                                edges[rotateList[index][1]].SetCord(-handledXY.Y);
+                                                //edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                     }
@@ -685,6 +705,9 @@ public partial class MainWindow : Fluent.RibbonWindow
             this.PreviousEditedX = -1;
             this.PreviousEditedY = -1;
 
+            // Restore SelectedCtrlPointEdge to Empty
+            this.SelectedCtrlPointEdge = String.Empty;
+            this.SelectedCtrlPointType = String.Empty;
             return;
         }
 
