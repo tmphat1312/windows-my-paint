@@ -8,6 +8,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Diagnostics;
+using System.Numerics;
+using Vector = System.Windows.Vector;
+using System.Security.Cryptography;
 
 namespace Paint;
 
@@ -514,26 +517,22 @@ public partial class MainWindow : Fluent.RibbonWindow
                                 index = 3;
                         };
 
+                    Trace.WriteLine($"Type: ${SelectedCtrlPointType}");
+                    Trace.WriteLine($"Edge: ${SelectedCtrlPointEdge}");
+
                     if (ctrlPoint.IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape.RotateAngle))
                     {
                         switch (ctrlPoint.Type)
                         {
                             case "rotate":
                                 {
-                                    const double RotateFactor = 180.0 / 270;
-                                    double alpha = Math.Abs(dx + dy);
+                                    Point2D centerPoint = shape.GetCenterPoint();
 
-                                    Point2D v = shape.GetCenterPoint();
+                                    Vector2 v = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                    double angle = (MathF.Atan2(v.Y, v.X) * (180f / Math.PI) + 450f) % 360f;
 
-                                    double xv = PreviousEditedX - v.X;
-                                    double yv = PreviousEditedY - v.Y;
+                                    shape.RotateAngle = angle;
 
-                                    double angle = Math.Atan2(dx * yv - dy * xv, dx * xv + dy * yv);
-
-                                    if (angle > 0)
-                                        shape.RotateAngle = shape.RotateAngle - alpha * RotateFactor;
-                                    else
-                                        shape.RotateAngle = shape.RotateAngle + alpha * RotateFactor;
                                     break;
                                 }
 
@@ -575,56 +574,44 @@ public partial class MainWindow : Fluent.RibbonWindow
                                             {
                                                 edges[rotateList[index][0]].SetCord(handledXY.X);
                                                 edges[rotateList[index][1]].SetCord(handledXY.Y);
-                                                //edges[rotateList[index][2]].SetCord(-handledXY.X);
-                                                //edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "topright":
                                             {
                                                 edges[rotateList[index][2]].SetCord(handledXY.X);
                                                 edges[rotateList[index][1]].SetCord(handledXY.Y);
-                                                //edges[rotateList[index][0]].SetCord(-handledXY.X);
-                                                //edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottomright":
                                             {
                                                 edges[rotateList[index][2]].SetCord(handledXY.X);
                                                 edges[rotateList[index][3]].SetCord(handledXY.Y);
-                                                //edges[rotateList[index][0]].SetCord(-handledXY.X);
-                                                //edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottomleft":
                                             {
                                                 edges[rotateList[index][0]].SetCord(handledXY.X);
                                                 edges[rotateList[index][3]].SetCord(handledXY.Y);
-                                                //edges[rotateList[index][2]].SetCord(-handledXY.X);
-                                                //edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "right":
                                             {
                                                 edges[rotateList[index][2]].SetCord(handledXY.X);
-                                                //edges[rotateList[index][0]].SetCord(-handledXY.X);
                                                 break;
                                             }
                                         case "left":
                                             {
                                                 edges[rotateList[index][0]].SetCord(handledXY.X);
-                                                //edges[rotateList[index][2]].SetCord(-handledXY.X);
                                                 break;
                                             }
                                         case "top":
                                             {
-                                                //edges[rotateList[index][1]].SetCord(handledXY.Y);
                                                 edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottom":
                                             {
                                                 edges[rotateList[index][3]].SetCord(handledXY.Y);
-                                                //edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                     }

@@ -80,6 +80,12 @@ public class Circle2D : CShape, IShape
             Canvas.SetTop(circle, RightBottom.Y);
         }
 
+        RotateTransform transform = new RotateTransform(RotateAngle);
+        transform.CenterX = width * 1.0 / 2;
+        transform.CenterY = height * 1.0 / 2;
+
+        circle.RenderTransform = transform;
+
         return circle;
     }
 

@@ -107,6 +107,9 @@ public class ControlPoint
 
     virtual public bool IsBeingChosen(string currentChosenType, string currentChosenEdge, double rotateAngle)
     {
+        if (currentChosenType == "rotate" || currentChosenType == "move")
+            return currentChosenType == Type;
+
         return currentChosenType == Type && currentChosenEdge == getEdge(rotateAngle);
     }
 }
