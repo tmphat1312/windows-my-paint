@@ -1,48 +1,53 @@
-﻿namespace Contract
+﻿namespace Contract;
+
+public class Util
 {
-    public class util
+    public static bool IsBetween(double x, double x1, double x2)
     {
-        public static bool isBetween(double x, double x1, double x2)
-        {
-            if (x1 > x2)
-                return x < x1 && x > x2;
-            else
-                return x < x2 && x > x1;
-        }
+        if (x1 > x2)
+            return x < x1 && x > x2;
+        else
+            return x < x2 && x > x1;
+    }
+}
+
+//to select reference value of X or Y of point2D cord 
+public class Cord
+{
+    public Point2D Point = new();
+
+    public Cord()
+    {
     }
 
-    //to select reference value of X or Y of point2D cord 
-    public class cord
+    public Cord(Point2D point)
     {
-        protected Point2D point;
-
-        public cord(Point2D temp)
-        {
-            point = temp;
-        }
-
-        virtual public double getCord()
-        {
-            return point.X;
-        }
-        virtual public void setCord(double x)
-        {
-            point.X += x;
-        }
+        Point = point;
     }
 
-    public class cordY : cord
+    virtual public double GetCord()
     {
-        public cordY(Point2D temp) : base(temp) { }
+        return Point.X;
+    }
+    virtual public void SetCord(double x)
+    {
+        Point.X += x;
+    }
+}
 
-        public override double getCord()
-        {
-            return point.Y;
-        }
+public class CordY : Cord
+{
+    public CordY() { }
 
-        public override void setCord(double x)
-        {
-            point.Y += x;
-        }
+    public CordY(Point2D point) : base(point) { }
+
+    public override double GetCord()
+    {
+        return Point.Y;
+    }
+
+    public override void SetCord(double x)
+    {
+        Point.Y += x;
     }
 }

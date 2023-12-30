@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace Line2D
+namespace Shapes
 {
     public class Line2D : CShape, IShape
     {
@@ -11,7 +11,7 @@ namespace Line2D
 
         public SolidColorBrush Brush { get; set; }
         public string Name => "Line";
-        public string Icon => "Images/line.png";
+        public string Icon => "Assets/Shapes/line.png";
 
         public int Thickness { get; set; }
 
@@ -114,8 +114,8 @@ namespace Line2D
         {
             Line2D temp = new Line2D();
 
-            temp.LeftTop = this.LeftTop.deepCopy();
-            temp.RightBottom = this.RightBottom.deepCopy();
+            temp.LeftTop = this.LeftTop.DeepCopy();
+            temp.RightBottom = this.RightBottom.DeepCopy();
             temp.RotateAngle = this.RotateAngle;
             temp.Thickness = this.Thickness;
 

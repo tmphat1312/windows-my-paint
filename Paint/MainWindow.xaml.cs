@@ -1,14 +1,12 @@
 ﻿using Contract;
 using Newtonsoft.Json;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-
 
 namespace Paint;
 
@@ -23,155 +21,62 @@ public partial class MainWindow : Fluent.RibbonWindow
         DataContext = ViewModel;
     }
 
-    /// <summary>
-    /// for global variables
-    /// </summary>
+    #region Global States
+    public bool IsDrawing { get; set; } = false;
+    public bool IsEditMode { get; set; } = false;
+    public bool IsSaved { get; set; } = false;
+    #endregion
 
-    private bool _isDrawing = false;
-    private bool _isEditMode = false;
-    private bool _isSaved = false;
+    #region Shape properties
+    private static int CurrentThickness = 1;
+    private static SolidColorBrush CurrentColorBrush = new(Colors.Black);
+    private static DoubleCollection? CurrentDash = null;
+    #endregion
 
-    //memory buffers
-    private List<IShape> _shapes = new List<IShape>();
-    private Stack<IShape> _buffer = new Stack<IShape>();
-    private IShape _preview = null;
-    private string _selectedShapeName = "";
-    private List<IShape> _copyBuffers = new List<IShape>();
-    private List<IShape> _chosedShapes = new List<IShape>();
+    #region Memory variables
+    public List<IShape> Shapes { get; set; } = [];
+    public Stack<IShape> Buffer { get; set; } = new Stack<IShape>();
+    public IShape? Preview { get; set; } = null;
+    public string SelectedShapeName { get; set; } = string.Empty;
+    public List<IShape> CopyBuffers { get; set; } = [];
+    public List<IShape> ChosenShapes { get; set; } = [];
+    #endregion
 
-    // Edit more variables
-    private double editPreviousX = -1;
-    private double editPreviousY = -1;
-    private List<ControlPoint> _controlPoints = new List<ControlPoint>();
+    #region Variables for edit mode
+    public double PreviousEditedX { get; set; } = -1;
+    public double PreviousEditedY { get; set; } = -1;
+    public List<ControlPoint> CtrlPoint { get; set; } = [];
+    #endregion
 
-    // Dictionary<string, IShape> _prototypes = new Dictionary<string, IShape>();
-    private List<IShape> allShape = new List<IShape>();
-    private ShapeFactory _factory = ShapeFactory.Instance;
-
-    // Shapes properties
-    private static int _currentThickness = 1;
-    private static SolidColorBrush _currentColor = new SolidColorBrush(Colors.Red);
-    private static DoubleCollection _currentDash = null;
-
-    private string _backgroundImagePath = "";
-
-    /// <summary>
-    /// Implement interface and child class
-    /// </summary>
-
-
-    class ShapeFactory
-    {
-        Dictionary<string, IShape> _prototypes;
-        private static ShapeFactory _instance = null;
-        private ShapeFactory()
-        {
-            _prototypes = new Dictionary<string, IShape>();
-
-            IShape line = new Line2D.Line2D();
-            IShape rect = new Rectangle2D.Rectangle2D();
-            IShape ellipse = new Ellipse2D.Ellipse2D();
-            IShape circle = new Circle2D.Circle2D();
-            IShape square = new Square2D.Square2D();
-
-            _prototypes.Add(line.Name, line);
-            _prototypes.Add(rect.Name, rect);
-            _prototypes.Add(ellipse.Name, ellipse);
-            _prototypes.Add(circle.Name, circle);
-            _prototypes.Add(square.Name, square);
-
-
-
-            // Uncomment this block of code later to load dll file
-
-            string exePath = Assembly.GetExecutingAssembly().Location;
-            string folder = System.IO.Path.GetDirectoryName(exePath);
-
-            //check if shape folder exist
-
-            if (!Directory.Exists(folder + "/shapes"))
-                return;
-
-            var fis = new DirectoryInfo(folder).GetFiles("shapes/*.dll");
-
-            Console.Write(fis.Count());
-
-            foreach (var f in fis)
-            {
-                var assembly = Assembly.LoadFile(f.FullName);
-                var types = assembly.GetTypes();
-
-                foreach (var type in types)
-                {
-                    if (type.IsClass && typeof(IShape).IsAssignableFrom(type))
-                    {
-                        IShape shape = (IShape)Activator.CreateInstance(type);
-                        _prototypes.Add(shape.Name, shape);
-                    }
-                }
-            }
-        }
-
-
-        public static ShapeFactory Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new ShapeFactory();
-                return _instance;
-            }
-        }
-
-        public Dictionary<string, IShape> GetDictionary()
-        {
-            return _prototypes;
-        }
-
-        public IShape Create(string shapeName)
-        {
-            IShape shape = null;
-            if (_prototypes.ContainsKey(shapeName))
-                shape = _prototypes[shapeName].Clone();
-            return shape;
-        }
-    }
-
-    private void editColorButton_Click(object sender, RoutedEventArgs e)
-    {
-        System.Windows.Forms.ColorDialog colorPicker = new System.Windows.Forms.ColorDialog();
-
-        if (colorPicker.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-            _currentColor = new SolidColorBrush(Color.FromRgb(colorPicker.Color.R, colorPicker.Color.G, colorPicker.Color.B));
-        }
-    }
+    #region Canvas drawing variables
+    private readonly ShapeFactory _factory = ShapeFactory.Instance;
+    public List<IShape> AllShapes = [];
+    public string BackgroundImagePath = string.Empty;
+    #endregion
 
     private void RibbonWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        SolidColorsListView.ItemsSource = ViewModel.Colors;
+        AllShapes = (List<IShape>)_factory.Shapes;
 
-        foreach (var item in _factory.GetDictionary())
+        #region Update UI element source
+        SolidColorsListView.ItemsSource = ViewModel.Colors;
+        ShapeListView.ItemsSource = AllShapes;
+        #endregion
+
+        if (AllShapes.Count == 0)
         {
-            var shape = item.Value as IShape;
-            allShape.Add(shape);
+            // TODO: handle this exception with a dialog
+            throw new Exception("No shape to run the application");
         }
 
-        iconListView.ItemsSource = allShape;
+        SelectedShapeName = _factory.ShapeNames.First();
+        Preview = _factory.Factor(SelectedShapeName);
 
-        if (this.allShape.Count == 0)
-            return;
-
-        _selectedShapeName = allShape[0].Name;
-        _preview = _factory.Create(_selectedShapeName);
-
-        //Handle kerydown event for entire application
-        var window = GetWindow(this);
-        window.KeyDown += HandleKeyPress;
+        KeyDown += RegisterKeyBoardShortCuts;
     }
 
-    //keyborad event
-    private void HandleKeyPress(object sender, KeyEventArgs e)
+    // TODO: Add shortcuts for commands
+    private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
     {
         //can remove
         switch (e.Key)
@@ -188,21 +93,31 @@ public partial class MainWindow : Fluent.RibbonWindow
         return;
     }
 
+    private void editColorButton_Click(object sender, RoutedEventArgs e)
+    {
+        using System.Windows.Forms.ColorDialog colorPicker = new();
+
+        if (colorPicker.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            CurrentColorBrush = new SolidColorBrush(Color.FromRgb(colorPicker.Color.R, colorPicker.Color.G, colorPicker.Color.B));
+        }
+    }
+
     private void createNewButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_backgroundImagePath.Length > 0 && _shapes.Count == 0)
+        if (BackgroundImagePath.Length > 0 && Shapes.Count == 0)
         {
-            _backgroundImagePath = "";
+            BackgroundImagePath = "";
             drawingArea.Background = new SolidColorBrush(Colors.White);
         }
-        if (_shapes.Count == 0)
+        if (Shapes.Count == 0)
         {
             // MessageBox.Show("This canvas is empty");
             return;
         }
 
 
-        if (_isSaved)
+        if (IsSaved)
         {
             ResetToDefault();
             return;
@@ -220,11 +135,11 @@ public partial class MainWindow : Fluent.RibbonWindow
                 TypeNameHandling = TypeNameHandling.Objects
             };
 
-            var serializedShapeList = JsonConvert.SerializeObject(_shapes, settings);
+            var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
 
             // experience 
             StringBuilder builder = new StringBuilder();
-            builder.Append(serializedShapeList).Append("\n").Append($"{_backgroundImagePath}");
+            builder.Append(serializedShapeList).Append("\n").Append($"{BackgroundImagePath}");
             string content = builder.ToString();
 
 
@@ -240,7 +155,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 
             // reset
             ResetToDefault();
-            _isSaved = true;
+            IsSaved = true;
         }
         else if (MessageBoxResult.No == result)
         {
@@ -281,26 +196,26 @@ public partial class MainWindow : Fluent.RibbonWindow
                 TypeNameHandling = TypeNameHandling.Objects
             };
 
-            _shapes.Clear();
-            _backgroundImagePath = background;
+            Shapes.Clear();
+            BackgroundImagePath = background;
             drawingArea.Children.Clear();
 
             List<IShape> containers = JsonConvert.DeserializeObject<List<IShape>>(json, settings);
 
             foreach (var item in containers)
-                _shapes.Add(item);
+                Shapes.Add(item);
 
-            if (_backgroundImagePath.Length != 0)
+            if (BackgroundImagePath.Length != 0)
             {
                 ImageBrush brush = new ImageBrush();
-                brush.ImageSource = new BitmapImage(new Uri(_backgroundImagePath, UriKind.Absolute));
+                brush.ImageSource = new BitmapImage(new Uri(BackgroundImagePath, UriKind.Absolute));
                 drawingArea.Background = brush;
             }
 
             //MessageBox.Show($"{background}");
         }
 
-        foreach (var shape in _shapes)
+        foreach (var shape in Shapes)
         {
             var element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
             drawingArea.Children.Add(element);
@@ -316,11 +231,11 @@ public partial class MainWindow : Fluent.RibbonWindow
             TypeNameHandling = TypeNameHandling.Objects
         };
 
-        var serializedShapeList = JsonConvert.SerializeObject(_shapes, settings);
+        var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
 
         // experience 
         StringBuilder builder = new StringBuilder();
-        builder.Append(serializedShapeList).Append("\n").Append($"{_backgroundImagePath}");
+        builder.Append(serializedShapeList).Append("\n").Append($"{BackgroundImagePath}");
         string content = builder.ToString();
 
 
@@ -332,7 +247,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         {
             string path = dialog.FileName;
             File.WriteAllText(path, content);
-            _isSaved = true;
+            IsSaved = true;
         }
     }
 
@@ -398,24 +313,24 @@ public partial class MainWindow : Fluent.RibbonWindow
 
     private void drawingArea_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (this.allShape.Count == 0)
+        if (this.AllShapes.Count == 0)
             return;
 
-        if (this._isEditMode)
+        if (this.IsEditMode)
         {
             if (Mouse.RightButton == MouseButtonState.Pressed)
             {
-                _chosedShapes.Clear();
+                ChosenShapes.Clear();
                 RedrawCanvas();
                 return;
             }
             return;
         }
 
-        _isDrawing = true;
+        IsDrawing = true;
         Point pos = e.GetPosition(drawingArea);
 
-        _preview.HandleStart(pos.X, pos.Y);
+        Preview.HandleStart(pos.X, pos.Y);
     }
 
     private void drawingArea_MouseMove(object sender, MouseEventArgs e)
@@ -423,15 +338,15 @@ public partial class MainWindow : Fluent.RibbonWindow
 
         //mouse change
         bool isChange = false;
-        if (_chosedShapes.Count == 1)
+        if (ChosenShapes.Count == 1)
         {
-            CShape shape1 = (CShape)_chosedShapes[0];
+            CShape shape1 = (CShape)ChosenShapes[0];
             Point currentPos1 = e.GetPosition(drawingArea);
-            for (int i = 0; i < _controlPoints.Count; i++)
+            for (int i = 0; i < CtrlPoint.Count; i++)
             {
-                if (_controlPoints[i].IsHovering(shape1.RotateAngle, currentPos1.X, currentPos1.Y))
+                if (CtrlPoint[i].IsHovering(shape1.RotateAngle, currentPos1.X, currentPos1.Y))
                 {
-                    switch (_controlPoints[i].getEdge(shape1.RotateAngle))
+                    switch (CtrlPoint[i].getEdge(shape1.RotateAngle))
                     {
                         case "topleft" or "bottomright":
                             {
@@ -455,7 +370,7 @@ public partial class MainWindow : Fluent.RibbonWindow
                             }
                     }
 
-                    if (_controlPoints[i].Type == "move" || _controlPoints[i].Type == "rotate")
+                    if (CtrlPoint[i].Type == "move" || CtrlPoint[i].Type == "rotate")
                         Mouse.OverrideCursor = Cursors.Hand;
 
                     isChange = true;
@@ -468,9 +383,9 @@ public partial class MainWindow : Fluent.RibbonWindow
         }
 
 
-        if (this._isEditMode)
+        if (this.IsEditMode)
         {
-            if (_chosedShapes.Count < 1)
+            if (ChosenShapes.Count < 1)
                 return;
 
             if (Mouse.LeftButton != MouseButtonState.Pressed)
@@ -480,21 +395,21 @@ public partial class MainWindow : Fluent.RibbonWindow
 
             double dx, dy;
 
-            if (editPreviousX == -1 || editPreviousY == -1)
+            if (PreviousEditedX == -1 || PreviousEditedY == -1)
             {
-                editPreviousX = currentPos.X;
-                editPreviousY = currentPos.Y;
+                PreviousEditedX = currentPos.X;
+                PreviousEditedY = currentPos.Y;
                 return;
             }
 
-            dx = currentPos.X - editPreviousX;
-            dy = currentPos.Y - editPreviousY;
+            dx = currentPos.X - PreviousEditedX;
+            dy = currentPos.Y - PreviousEditedY;
 
-            if (_chosedShapes.Count > 1)
+            if (ChosenShapes.Count > 1)
             {
                 //handle multiple shapes
 
-                _chosedShapes.ForEach(E =>
+                ChosenShapes.ForEach(E =>
                 {
                     CShape K = (CShape)E;
 
@@ -515,15 +430,15 @@ public partial class MainWindow : Fluent.RibbonWindow
 					*/
 
                 //controlPoint detect part
-                CShape shape = (CShape)_chosedShapes[0];
-                _controlPoints.ForEach(ctrlPoint =>
+                CShape shape = (CShape)ChosenShapes[0];
+                CtrlPoint.ForEach(ctrlPoint =>
                 {
-                    List<cord> edges = new List<cord>()
+                    List<Cord> edges = new List<Cord>()
                     {
-                    new cord(shape.LeftTop),      // 0 xt
-                    new cordY(shape.LeftTop),      // 1 yt
-                    new cord(shape.RightBottom),  // 2 xb
-                    new cordY(shape.RightBottom)   // 3 yb
+                    new Cord(shape.LeftTop),      // 0 xt
+                    new CordY(shape.LeftTop),      // 1 yt
+                    new Cord(shape.RightBottom),  // 2 xb
+                    new CordY(shape.RightBottom)   // 3 yb
 						};
 
                     List<int> rotate0 = new List<int>
@@ -590,8 +505,8 @@ public partial class MainWindow : Fluent.RibbonWindow
 
                                     Point2D v = shape.GetCenterPoint();
 
-                                    double xv = editPreviousX - v.X;
-                                    double yv = editPreviousY - v.Y;
+                                    double xv = PreviousEditedX - v.X;
+                                    double yv = PreviousEditedY - v.Y;
 
                                     double angle = Math.Atan2(dx * yv - dy * xv, dx * xv + dy * yv);
 
@@ -638,58 +553,58 @@ public partial class MainWindow : Fluent.RibbonWindow
                                     {
                                         case "topleft":
                                             {
-                                                edges[rotateList[index][0]].setCord(handledXY.X);
-                                                edges[rotateList[index][1]].setCord(handledXY.Y);
-                                                edges[rotateList[index][2]].setCord(-handledXY.X);
-                                                edges[rotateList[index][3]].setCord(-handledXY.Y);
+                                                edges[rotateList[index][0]].SetCord(handledXY.X);
+                                                edges[rotateList[index][1]].SetCord(handledXY.Y);
+                                                edges[rotateList[index][2]].SetCord(-handledXY.X);
+                                                edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "topright":
                                             {
-                                                edges[rotateList[index][2]].setCord(handledXY.X);
-                                                edges[rotateList[index][1]].setCord(handledXY.Y);
-                                                edges[rotateList[index][0]].setCord(-handledXY.X);
-                                                edges[rotateList[index][3]].setCord(-handledXY.Y);
+                                                edges[rotateList[index][2]].SetCord(handledXY.X);
+                                                edges[rotateList[index][1]].SetCord(handledXY.Y);
+                                                edges[rotateList[index][0]].SetCord(-handledXY.X);
+                                                edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottomright":
                                             {
-                                                edges[rotateList[index][2]].setCord(handledXY.X);
-                                                edges[rotateList[index][3]].setCord(handledXY.Y);
-                                                edges[rotateList[index][0]].setCord(-handledXY.X);
-                                                edges[rotateList[index][1]].setCord(-handledXY.Y);
+                                                edges[rotateList[index][2]].SetCord(handledXY.X);
+                                                edges[rotateList[index][3]].SetCord(handledXY.Y);
+                                                edges[rotateList[index][0]].SetCord(-handledXY.X);
+                                                edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottomleft":
                                             {
-                                                edges[rotateList[index][0]].setCord(handledXY.X);
-                                                edges[rotateList[index][3]].setCord(handledXY.Y);
-                                                edges[rotateList[index][2]].setCord(-handledXY.X);
-                                                edges[rotateList[index][1]].setCord(-handledXY.Y);
+                                                edges[rotateList[index][0]].SetCord(handledXY.X);
+                                                edges[rotateList[index][3]].SetCord(handledXY.Y);
+                                                edges[rotateList[index][2]].SetCord(-handledXY.X);
+                                                edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "right":
                                             {
-                                                edges[rotateList[index][2]].setCord(handledXY.X);
-                                                edges[rotateList[index][0]].setCord(-handledXY.X);
+                                                edges[rotateList[index][2]].SetCord(handledXY.X);
+                                                edges[rotateList[index][0]].SetCord(-handledXY.X);
                                                 break;
                                             }
                                         case "left":
                                             {
-                                                edges[rotateList[index][0]].setCord(handledXY.X);
-                                                edges[rotateList[index][2]].setCord(-handledXY.X);
+                                                edges[rotateList[index][0]].SetCord(handledXY.X);
+                                                edges[rotateList[index][2]].SetCord(-handledXY.X);
                                                 break;
                                             }
                                         case "top":
                                             {
-                                                edges[rotateList[index][1]].setCord(handledXY.Y);
-                                                edges[rotateList[index][3]].setCord(-handledXY.Y);
+                                                edges[rotateList[index][1]].SetCord(handledXY.Y);
+                                                edges[rotateList[index][3]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                         case "bottom":
                                             {
-                                                edges[rotateList[index][3]].setCord(handledXY.Y);
-                                                edges[rotateList[index][1]].setCord(-handledXY.Y);
+                                                edges[rotateList[index][3]].SetCord(handledXY.Y);
+                                                edges[rotateList[index][1]].SetCord(-handledXY.Y);
                                                 break;
                                             }
                                     }
@@ -702,64 +617,64 @@ public partial class MainWindow : Fluent.RibbonWindow
             }
 
 
-            editPreviousX = currentPos.X;
-            editPreviousY = currentPos.Y;
+            PreviousEditedX = currentPos.X;
+            PreviousEditedY = currentPos.Y;
 
             RedrawCanvas();
             return;
         }
 
-        if (_isDrawing)
+        if (IsDrawing)
         {
             Point pos = e.GetPosition(drawingArea);
 
-            _preview.HandleEnd(pos.X, pos.Y);
+            Preview.HandleEnd(pos.X, pos.Y);
 
             // delete old shapes
             drawingArea.Children.Clear();
 
             // redraw all shapes
-            foreach (var shape in _shapes)
+            foreach (var shape in Shapes)
             {
                 UIElement element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
                 drawingArea.Children.Add(element);
             }
 
             // lastly, draw preview object 
-            drawingArea.Children.Add(_preview.Draw(_currentColor, _currentThickness, _currentDash));
+            drawingArea.Children.Add(Preview.Draw(CurrentColorBrush, CurrentThickness, CurrentDash));
         }
     }
 
     private void drawingArea_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (this.allShape.Count == 0)
+        if (this.AllShapes.Count == 0)
             return;
 
-        _isDrawing = false;
+        IsDrawing = false;
 
-        if (this._isEditMode)
+        if (this.IsEditMode)
         {
 
             if (e.ChangedButton != MouseButton.Left)
                 return;
 
             Point currentPos = e.GetPosition(drawingArea);
-            for (int i = this._shapes.Count - 1; i >= 0; i--)
+            for (int i = this.Shapes.Count - 1; i >= 0; i--)
             {
-                CShape temp = (CShape)_shapes[i];
+                CShape temp = (CShape)Shapes[i];
                 if (temp.IsHovering(currentPos.X, currentPos.Y))
                 {
                     if (Keyboard.IsKeyDown(Key.LeftCtrl))
                     {
-                        if (!_chosedShapes.Contains(_shapes[i]))
-                            this._chosedShapes.Add(_shapes[i]);
+                        if (!ChosenShapes.Contains(Shapes[i]))
+                            this.ChosenShapes.Add(Shapes[i]);
                         else
-                            this._chosedShapes.Remove(_shapes[i]);
+                            this.ChosenShapes.Remove(Shapes[i]);
                     }
                     else
                     {
-                        _chosedShapes.Clear();
-                        this._chosedShapes.Add(_shapes[i]);
+                        ChosenShapes.Clear();
+                        this.ChosenShapes.Add(Shapes[i]);
                     }
 
                     RedrawCanvas();
@@ -767,26 +682,26 @@ public partial class MainWindow : Fluent.RibbonWindow
                 }
             }
 
-            this.editPreviousX = -1;
-            this.editPreviousY = -1;
+            this.PreviousEditedX = -1;
+            this.PreviousEditedY = -1;
 
             return;
         }
 
         Point pos = e.GetPosition(drawingArea);
-        _preview.HandleEnd(pos.X, pos.Y);
+        Preview.HandleEnd(pos.X, pos.Y);
 
         // Ddd to shapes list & save it color + thickness
-        _shapes.Add(_preview);
-        _preview.Brush = _currentColor;
-        _preview.Thickness = _currentThickness;
-        _preview.StrokeDash = _currentDash;
+        Shapes.Add(Preview);
+        Preview.Brush = CurrentColorBrush;
+        Preview.Thickness = CurrentThickness;
+        Preview.StrokeDash = CurrentDash;
 
         // Draw new thing -> isSaved = false
-        _isSaved = false;
+        IsSaved = false;
 
         // Move to new preview 
-        _preview = _factory.Create(_selectedShapeName);
+        Preview = _factory.Factor(SelectedShapeName);
 
         // Re-draw the canvas
 
@@ -799,33 +714,33 @@ public partial class MainWindow : Fluent.RibbonWindow
     }
     private void drawingArea_MouseEnter(object sender, MouseEventArgs e)
     {
-        if (this.allShape.Count == 0)
+        if (this.AllShapes.Count == 0)
             return;
 
-        if (this._isEditMode)
+        if (this.IsEditMode)
             return;
 
-        if (Mouse.LeftButton != MouseButtonState.Pressed && this._isDrawing)
+        if (Mouse.LeftButton != MouseButtonState.Pressed && this.IsDrawing)
         {
             //wish there is a better solution like
             // this.drawingArea_MouseUp(sender, e)
             // but e is not MouseButtonEventArgs (;-;)
-            _isDrawing = false;
+            IsDrawing = false;
 
             Point pos = e.GetPosition(drawingArea);
-            _preview.HandleEnd(pos.X, pos.Y);
+            Preview.HandleEnd(pos.X, pos.Y);
 
             // Ddd to shapes list & save it color + thickness
-            _shapes.Add(_preview);
-            _preview.Brush = _currentColor;
-            _preview.Thickness = _currentThickness;
-            _preview.StrokeDash = _currentDash;
+            Shapes.Add(Preview);
+            Preview.Brush = CurrentColorBrush;
+            Preview.Thickness = CurrentThickness;
+            Preview.StrokeDash = CurrentDash;
 
             // Draw new thing -> isSaved = false
-            _isSaved = false;
+            IsSaved = false;
 
             // Move to new preview 
-            _preview = _factory.Create(_selectedShapeName);
+            Preview = _factory.Factor(SelectedShapeName);
 
             // Re-draw the canvas
             RedrawCanvas();
@@ -839,86 +754,86 @@ public partial class MainWindow : Fluent.RibbonWindow
         switch (index)
         {
             case 0:
-                _currentThickness = 1;
+                CurrentThickness = 1;
                 break;
             case 1:
-                _currentThickness = 2;
+                CurrentThickness = 2;
                 break;
             case 2:
-                _currentThickness = 3;
+                CurrentThickness = 3;
                 break;
             case 3:
-                _currentThickness = 5;
+                CurrentThickness = 5;
                 break;
             default:
                 break;
         }
     }
 
-    #region color button
+    //#region color button
 
-    private void btnBasicBlack_Click(object sender, RoutedEventArgs e)
+    //private void btnBasicBlack_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+    //}
+
+    //private void btnBasicGray_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(192, 192, 192));
+    //}
+
+    //private void btnBasicRed_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
+    //}
+
+    //private void btnBasicOrange_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
+    //}
+
+    //private void btnBasicBlue_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 0, 255));
+    //}
+
+    //private void btnBasicGreen_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
+    //}
+
+    //private void btnBasicPurple_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(191, 64, 191));
+    //}
+
+    //private void btnBasicPink_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 182, 193));
+    //}
+
+    //private void btnBasicYellow_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 255, 0));
+    //}
+
+    //private void btnBasicBrown_Click(object sender, RoutedEventArgs e)
+    //{
+    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(160, 82, 45));
+    //}
+
+    //#endregion
+
+    private void ShapeListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        _currentColor = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-    }
-
-    private void btnBasicGray_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(192, 192, 192));
-    }
-
-    private void btnBasicRed_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-    }
-
-    private void btnBasicOrange_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(255, 165, 0));
-    }
-
-    private void btnBasicBlue_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(0, 0, 255));
-    }
-
-    private void btnBasicGreen_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(0, 255, 0));
-    }
-
-    private void btnBasicPurple_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(191, 64, 191));
-    }
-
-    private void btnBasicPink_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(255, 182, 193));
-    }
-
-    private void btnBasicYellow_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(255, 255, 0));
-    }
-
-    private void btnBasicBrown_Click(object sender, RoutedEventArgs e)
-    {
-        _currentColor = new SolidColorBrush(Color.FromRgb(160, 82, 45));
-    }
-
-    #endregion
-
-    private void iconListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (this.allShape.Count == 0)
+        if (this.AllShapes.Count == 0)
             return;
 
-        var index = iconListView.SelectedIndex;
+        var index = ShapeListView.SelectedIndex;
 
-        _selectedShapeName = allShape[index].Name;
+        SelectedShapeName = AllShapes[index].Name;
 
-        _preview = _factory.Create(_selectedShapeName);
+        Preview = _factory.Factor(SelectedShapeName);
     }
 
     private void exportButton_Click(object sender, RoutedEventArgs e)
@@ -933,7 +848,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 
             SaveCanvasToImage(drawingArea, path, extension);
         }
-        _isSaved = true;
+        IsSaved = true;
     }
 
     private void dashComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -943,16 +858,13 @@ public partial class MainWindow : Fluent.RibbonWindow
         switch (index)
         {
             case 0:
-                _currentDash = null;
+                CurrentDash = null;
                 break;
-            //case 1:
-            //    _currentDash = new DoubleCollection() { 4, 1, 1, 1, 1, 1 };
-            //    break;
             case 1:
-                _currentDash = new DoubleCollection() { 1, 1 };
+                CurrentDash = [1, 1];
                 break;
             case 2:
-                _currentDash = new DoubleCollection() { 6, 1 };
+                CurrentDash = [6, 1];
                 break;
             default:
                 break;
@@ -968,7 +880,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         {
             string path = dialog.FileName;
 
-            _backgroundImagePath = path;
+            BackgroundImagePath = path;
 
             ImageBrush brush = new ImageBrush();
             brush.ImageSource = new BitmapImage(new Uri(path, UriKind.Absolute));
@@ -978,25 +890,25 @@ public partial class MainWindow : Fluent.RibbonWindow
 
     private void ResetToDefault()
     {
-        if (this.allShape.Count == 0)
+        if (this.AllShapes.Count == 0)
             return;
 
-        _isSaved = false;
-        _isDrawing = false;
-        _isEditMode = false;
+        IsSaved = false;
+        IsDrawing = false;
+        IsEditMode = false;
 
-        _chosedShapes.Clear();
+        ChosenShapes.Clear();
 
-        _shapes.Clear();
+        Shapes.Clear();
 
-        _selectedShapeName = allShape[0].Name;
-        _preview = _factory.Create(_selectedShapeName);
+        SelectedShapeName = AllShapes[0].Name;
+        Preview = _factory.Factor(SelectedShapeName);
 
-        _currentThickness = 1;
-        _currentColor = new SolidColorBrush(Colors.Red);
-        _currentDash = null;
+        CurrentThickness = 1;
+        CurrentColorBrush = new SolidColorBrush(Colors.Red);
+        CurrentDash = null;
 
-        _backgroundImagePath = "";
+        BackgroundImagePath = "";
 
         dashComboBox.SelectedIndex = 0;
         sizeComboBox.SelectedIndex = 0;
@@ -1008,36 +920,36 @@ public partial class MainWindow : Fluent.RibbonWindow
 
     private void undoButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_shapes.Count == 0)
+        if (Shapes.Count == 0)
             return;
-        if (_shapes.Count == 0 && _buffer.Count == 0)
+        if (Shapes.Count == 0 && Buffer.Count == 0)
             return;
 
         // Push last shape into buffer and remove it from final list, then re-draw canvas
-        int lastIndex = _shapes.Count - 1;
-        _buffer.Push(_shapes[lastIndex]);
-        _shapes.RemoveAt(lastIndex);
+        int lastIndex = Shapes.Count - 1;
+        Buffer.Push(Shapes[lastIndex]);
+        Shapes.RemoveAt(lastIndex);
 
         RedrawCanvas();
     }
 
     private void redoButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_buffer.Count == 0)
+        if (Buffer.Count == 0)
             return;
-        if (_shapes.Count == 0 && _buffer.Count == 0)
+        if (Shapes.Count == 0 && Buffer.Count == 0)
             return;
 
         // Pop the last shape from buffer and add it to final list, then re-draw canvas
-        _shapes.Add(_buffer.Pop());
+        Shapes.Add(Buffer.Pop());
         RedrawCanvas();
     }
 
     private void RedrawCanvas()
     {
         drawingArea.Children.Clear();
-        Console.WriteLine(_shapes.Count);
-        foreach (var shape in _shapes)
+        Console.WriteLine(Shapes.Count);
+        foreach (var shape in Shapes)
         {
             var element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
             drawingArea.Children.Add(element);
@@ -1045,18 +957,18 @@ public partial class MainWindow : Fluent.RibbonWindow
 
         //control Point display ontop
         //rework
-        if (_isEditMode && _chosedShapes.Count > 0)
+        if (IsEditMode && ChosenShapes.Count > 0)
         {
-            _chosedShapes.ForEach(shape =>
+            ChosenShapes.ForEach(shape =>
             {
                 CShape chosedShape = (CShape)shape;
                 drawingArea.Children.Add(chosedShape.ControlOutline());
 
                 //if only chose one shape
-                if (_chosedShapes.Count == 1)
+                if (ChosenShapes.Count == 1)
                 {
                     List<ControlPoint> ctrlPoints = chosedShape.GetControlPoints();
-                    this._controlPoints = ctrlPoints;
+                    this.CtrlPoint = ctrlPoints;
                     ctrlPoints.ForEach(K =>
                     {
                         drawingArea.Children.Add(K.DrawPoint(chosedShape.RotateAngle, chosedShape.GetCenterPoint()));
@@ -1066,61 +978,54 @@ public partial class MainWindow : Fluent.RibbonWindow
         }
     }
 
-    //Tools tab event
-
     private void EditMode_Click(object sender, RoutedEventArgs e)
     {
-        this._isEditMode = !this._isEditMode;
-        if (_isEditMode)
+        this.IsEditMode = !this.IsEditMode;
+        if (IsEditMode)
             EditMode.Header = "Edit Mode";
         else EditMode.Header = "Draw Mode";
 
-        if (!this._isEditMode)
-            this._chosedShapes.Clear();
+        if (!this.IsEditMode)
+            this.ChosenShapes.Clear();
     }
 
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
-        if (this._isEditMode)
+        if (this.IsEditMode)
         {
 
-            _chosedShapes.ForEach(k =>
+            ChosenShapes.ForEach(k =>
             {
-                _shapes.Remove(k);
+                Shapes.Remove(k);
             });
 
-            _chosedShapes.Clear();
+            ChosenShapes.Clear();
             RedrawCanvas();
         }
     }
 
     private void copyButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this._isEditMode)
+        if (this.IsEditMode)
         {
-            _chosedShapes.ForEach(K =>
+            ChosenShapes.ForEach(K =>
             {
-                _copyBuffers.Add(K);
+                CopyBuffers.Add(K);
             });
         }
     }
 
     private void pasteButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this._isEditMode)
+        if (this.IsEditMode)
         {
-            _copyBuffers.ForEach(K =>
+            CopyBuffers.ForEach(K =>
             {
                 CShape temp = (CShape)K;
-                _shapes.Add((IShape)temp.DeepCopy());
+                Shapes.Add((IShape)temp.DeepCopy());
             });
             RedrawCanvas();
         }
-
-    }
-
-    private void Group_Click(object sender, RoutedEventArgs e)
-    {
 
     }
 }

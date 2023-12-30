@@ -14,8 +14,6 @@ public class ControlPoint
 
     virtual public string Type { get; set; } = "rotate";
 
-    //virtual public string Edge { get; set; } = "topleft";
-
     public ControlPoint()
     {
     }
@@ -34,7 +32,7 @@ public class ControlPoint
         Point pos = new() { X = Point.X, Y = Point.Y };
         Point centre = new() { X = CentrePoint.X, Y = CentrePoint.Y };
 
-        Point afterTransform = VectorTranform.Rotate(pos, angle, centre);
+        Point afterTransform = VectorTransform.Rotate(pos, angle, centre);
 
         Canvas.SetLeft(element, afterTransform.X - SIZE / 2);
         Canvas.SetTop(element, afterTransform.Y - SIZE / 2);
@@ -46,10 +44,10 @@ public class ControlPoint
         Point pos = new() { X = Point.X, Y = Point.Y };
         Point centre = new() { X = CentrePoint.X, Y = CentrePoint.Y };
 
-        Point afterTransform = VectorTranform.Rotate(pos, angle, centre);
+        Point afterTransform = VectorTransform.Rotate(pos, angle, centre);
 
-        return util.isBetween(x, afterTransform.X + 15, afterTransform.X - 15)
-            && util.isBetween(y, afterTransform.Y + 15, afterTransform.Y - 15);
+        return Util.IsBetween(x, afterTransform.X + 15, afterTransform.X - 15)
+            && Util.IsBetween(y, afterTransform.Y + 15, afterTransform.Y - 15);
     }
 
     virtual public string getEdge(double angle)

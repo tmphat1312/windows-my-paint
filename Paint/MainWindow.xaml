@@ -127,11 +127,11 @@
                 <!--Shapes-->
                 <Fluent:RibbonGroupBox Header="Shapes">
                     <ListView 
-                        Name="iconListView" 
+                        Name="ShapeListView" 
                         Width="160"
                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                         BorderThickness="0" 
-                        SelectionChanged="iconListView_SelectionChanged">
+                        SelectionChanged="ShapeListView_SelectionChanged">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderThickness="1"  Padding="5" CornerRadius="4">
@@ -295,7 +295,7 @@
                             </ListView.ItemsPanel>
                         </ListView>
 
-                        <Fluent:Button Name="editColorButton" Header="Custom" Click="editColorButton_Click" Padding="4,4,4,0">
+                        <Fluent:Button Name="editColorButton" Header="Picker" Click="editColorButton_Click" Padding="4,4,4,0" Margin="0,6,0,0">
                             <Fluent:Button.LargeIcon>
                                 <Image Source="Images/color_wheel.png" />
                             </Fluent:Button.LargeIcon>

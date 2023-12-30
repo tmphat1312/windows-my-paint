@@ -24,8 +24,8 @@ public class CShape
 
     virtual public bool IsHovering(double x, double y)
     {
-        return util.isBetween(x, this.RightBottom.X, this.LeftTop.X)
-            && util.isBetween(y, this.RightBottom.Y, this.LeftTop.Y);
+        return Util.IsBetween(x, this.RightBottom.X, this.LeftTop.X)
+            && Util.IsBetween(y, this.RightBottom.Y, this.LeftTop.Y);
     }
 
     virtual public List<ControlPoint> GetControlPoints()
