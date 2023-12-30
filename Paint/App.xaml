@@ -9,6 +9,5 @@
                 <ResourceDictionary Source="pack://application:,,,/Fluent;Component/Themes/Generic.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-
     </Application.Resources>
 </Application>

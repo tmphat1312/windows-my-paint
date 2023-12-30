@@ -1,109 +1,107 @@
 using Contract;
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace Circle2D
+namespace Shapes;
+
+public class Circle2D : CShape, IShape
 {
-    public class Circle2D : CShape, IShape
+
+    public DoubleCollection StrokeDash { get; set; }
+
+
+    public SolidColorBrush Brush { get; set; }
+    public string Name => "Circle";
+    public string Icon => "Assets/Shapes/circle.png";
+    public int Thickness { get; set; }
+
+    public void HandleStart(double x, double y)
     {
+        LeftTop.X = x;
+        LeftTop.Y = y;
+    }
+    public void HandleEnd(double x, double y)
+    {
+        RightBottom.X = x;
+        RightBottom.Y = y;
 
-        public DoubleCollection StrokeDash { get; set; }
-
-
-        public SolidColorBrush Brush { get; set; }
-        public string Name => "Circle";
-        public string Icon => "Images/circle.png";
-        public int Thickness { get; set; }
-
-        public void HandleStart(double x, double y)
+        double width = Math.Abs(RightBottom.X - LeftTop.X);
+        double height = Math.Abs(RightBottom.Y - LeftTop.Y);
+        if (width < height)
         {
-            _leftTop.X = x;
-            _leftTop.Y = y;
-        }
-        public void HandleEnd(double x, double y)
-        {
-            _rightBottom.X = x;
-            _rightBottom.Y = y;
-
-            double width = Math.Abs(_rightBottom.X - _leftTop.X);
-            double height = Math.Abs(_rightBottom.Y - _leftTop.Y);
-            if (width < height)
-            {
-                if (_rightBottom.Y < _leftTop.Y)
-                    _rightBottom.Y = _leftTop.Y - width;
-                else
-                    _rightBottom.Y = _leftTop.Y + width;
-            }
+            if (RightBottom.Y < LeftTop.Y)
+                RightBottom.Y = LeftTop.Y - width;
             else
-            if (width > height)
-            {
-                if (_rightBottom.X < _leftTop.X)
-                    _rightBottom.X = _leftTop.X - height;
-                else _rightBottom.X = _leftTop.X + height;
-            }
+                RightBottom.Y = LeftTop.Y + width;
         }
-
-        public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
+        else
+        if (width > height)
         {
-            double width = Math.Abs(_rightBottom.X - _leftTop.X);
-            double height = Math.Abs(_rightBottom.Y - _leftTop.Y);
-
-            var circle = new Ellipse()
-            {
-                Width = width,
-                Height = height,
-                StrokeThickness = thickness,
-                Stroke = brush,
-                StrokeDashArray = dash,
-            };
-
-            if (_rightBottom.X > _leftTop.X && _rightBottom.Y > _leftTop.Y)
-            {
-                Canvas.SetLeft(circle, _leftTop.X);
-                Canvas.SetTop(circle, _leftTop.Y);
-            }
-            else if (_rightBottom.X < _leftTop.X && _rightBottom.Y > _leftTop.Y)
-            {
-                Canvas.SetLeft(circle, _rightBottom.X);
-                Canvas.SetTop(circle, _leftTop.Y);
-            }
-            else if (_rightBottom.X > _leftTop.X && _rightBottom.Y < _leftTop.Y)
-            {
-                Canvas.SetLeft(circle, _leftTop.X);
-                Canvas.SetTop(circle, _rightBottom.Y);
-            }
-            else
-            {
-                Canvas.SetLeft(circle, _rightBottom.X);
-                Canvas.SetTop(circle, _rightBottom.Y);
-            }
-
-            return circle;
+            if (RightBottom.X < LeftTop.X)
+                RightBottom.X = LeftTop.X - height;
+            else RightBottom.X = LeftTop.X + height;
         }
+    }
 
-        public IShape Clone()
+    public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
+    {
+        double width = Math.Abs(RightBottom.X - LeftTop.X);
+        double height = Math.Abs(RightBottom.Y - LeftTop.Y);
+
+        var circle = new Ellipse()
         {
-            return new Circle2D();
-        }
-        override public CShape deepCopy()
+            Width = width,
+            Height = height,
+            StrokeThickness = thickness,
+            Stroke = brush,
+            StrokeDashArray = dash,
+        };
+
+        if (RightBottom.X > LeftTop.X && RightBottom.Y > LeftTop.Y)
         {
-            Circle2D temp = new Circle2D();
-
-            temp.LeftTop = this._leftTop.deepCopy();
-            temp.RightBottom = this._rightBottom.deepCopy();
-            temp._rotateAngle = this._rotateAngle;
-            temp.Thickness = this.Thickness;
-
-            if (this.Brush != null)
-                temp.Brush = this.Brush.Clone();
-
-            if (this.StrokeDash != null)
-                temp.StrokeDash = this.StrokeDash.Clone();
-
-            return temp;
+            Canvas.SetLeft(circle, LeftTop.X);
+            Canvas.SetTop(circle, LeftTop.Y);
         }
+        else if (RightBottom.X < LeftTop.X && RightBottom.Y > LeftTop.Y)
+        {
+            Canvas.SetLeft(circle, RightBottom.X);
+            Canvas.SetTop(circle, LeftTop.Y);
+        }
+        else if (RightBottom.X > LeftTop.X && RightBottom.Y < LeftTop.Y)
+        {
+            Canvas.SetLeft(circle, LeftTop.X);
+            Canvas.SetTop(circle, RightBottom.Y);
+        }
+        else
+        {
+            Canvas.SetLeft(circle, RightBottom.X);
+            Canvas.SetTop(circle, RightBottom.Y);
+        }
+
+        return circle;
+    }
+
+    public IShape Clone()
+    {
+        return new Circle2D();
+    }
+    override public CShape DeepCopy()
+    {
+        Circle2D temp = new Circle2D();
+
+        temp.LeftTop = this.LeftTop.DeepCopy();
+        temp.RightBottom = this.RightBottom.DeepCopy();
+        temp.RotateAngle = this.RotateAngle;
+        temp.Thickness = this.Thickness;
+
+        if (this.Brush != null)
+            temp.Brush = this.Brush.Clone();
+
+        if (this.StrokeDash != null)
+            temp.StrokeDash = this.StrokeDash.Clone();
+
+        return temp;
     }
 }

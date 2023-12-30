@@ -1,72 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace Contract
+namespace Contract;
+
+public class Point2D : IShape
 {
-    public class Point2D : IShape
+    public double X { get; set; }
+    public double Y { get; set; }
+
+    public string Icon { get; } = "M 0 0 L 0 0";
+    public string Name => "Point";
+
+    public SolidColorBrush Brush { get; set; } = Brushes.Black;
+    public DoubleCollection StrokeDash { get; set; } = new DoubleCollection();
+    public int Thickness { get; set; }
+
+    //public bool isHovering(double x, double y)
+    //{
+    //    return false;
+    //}
+
+    public void HandleStart(double x, double y)
     {
-        public double X { get; set; }
-        public double Y { get; set; }
+        X = x;
+        Y = y;
+    }
 
-        public string Icon { get; }
+    public void HandleEnd(double x, double y)
+    {
+        X = x;
+        Y = y;
+    }
 
-        public SolidColorBrush Brush { get; set; }
-        public DoubleCollection StrokeDash { get; set; }
-        public string Name => "Point";
-        public int Thickness { get; set; }
-
-        public bool isHovering(double x, double y)
-		{
-            return false;
-		}
-      
-
-        public void HandleStart(double x, double y)
+    public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
+    {
+        Line line = new()
         {
-            X = x;
-            Y = y;
-        }
+            X1 = X,
+            Y1 = Y,
+            X2 = X,
+            Y2 = Y,
+            StrokeThickness = thickness,
+            Stroke = brush,
+            StrokeDashArray = dash
+        };
 
-        public void HandleEnd(double x, double y)
+        return line;
+    }
+
+
+    public IShape Clone()
+    {
+        return new Point2D();
+    }
+
+    public Point2D DeepCopy()
+    {
+        Point2D cloned = new()
         {
-            X = x;
-            Y = y;
-        }
+            Y = this.Y,
+            X = this.X
+        };
 
-
-        public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
-        {
-            Line line = new Line()
-            {
-                X1 = X,
-                Y1 = Y,
-                X2 = X,
-                Y2 = Y,
-                StrokeThickness = thickness,
-                Stroke = brush,
-                StrokeDashArray = dash
-            };
-
-			return line;
-		}
-
-
-        public IShape Clone()
-        {
-            return new Point2D();
-        }
-        public Point2D deepCopy()
-		{
-            Point2D temp = new Point2D();
-            temp.Y = this.Y;
-            temp.X = this.X;
-            return temp;
-		}
+        return cloned;
     }
 }

@@ -3,121 +3,105 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace Contract
+namespace Contract;
+
+public class ControlPoint
 {
-	public class controlPoint
-	{
-		protected const int size = 12;
-		protected Point2D point;
-		protected Point2D centrePoint;
+    protected const int SIZE = 8;
 
-		virtual public string type { get; set; }
+    public Point2D Point { get; set; } = new();
+    public Point2D CentrePoint { get; set; } = new();
 
-		virtual public string edge { get; set; }
-		public controlPoint()
-		{
-			point = new Point2D();
-		}
+    virtual public string Type { get; set; } = "rotate";
 
-		public void setPoint(double x, double y)
-		{
-			point.X = x;
-			point.Y = y;
-		}
+    public ControlPoint()
+    {
+    }
 
-		public Point2D getPoint()
-		{
-			return point;
-		}
+    virtual public UIElement DrawPoint(double angle, Point2D centrePoint)
+    {
+        UIElement element = new Ellipse()
+        {
+            Width = SIZE,
+            Height = SIZE,
+            Fill = Brushes.White,
+            Stroke = Brushes.Black,
+            StrokeThickness = SIZE / 5,
+        };
 
-		virtual public UIElement drawPoint(double angle, Point2D centrePoint)
-		{
-			UIElement element = new Ellipse()
-			{
-				Width = size,
-				Height = size,
-				Fill = Brushes.White,
-				Stroke = Brushes.Black,
-				StrokeThickness = size / 5,
-			};
+        Point pos = new() { X = Point.X, Y = Point.Y };
+        Point centre = new() { X = CentrePoint.X, Y = CentrePoint.Y };
 
-			this.centrePoint = centrePoint;
+        Point afterTransform = VectorTransform.Rotate(pos, angle, centre);
 
-			//element.RenderTransform = rotateTransform;
-			Point pos = new Point(point.X, point.Y);
-			Point centre = new Point(centrePoint.X, centrePoint.Y);
+        Canvas.SetLeft(element, afterTransform.X - SIZE / 2);
+        Canvas.SetTop(element, afterTransform.Y - SIZE / 2);
 
-			Point afterTransform = VectorTranform.Rotate(pos, angle, centre);
+        return element;
+    }
+    virtual public bool IsHovering(double angle, double x, double y)
+    {
+        Point pos = new() { X = Point.X, Y = Point.Y };
+        Point centre = new() { X = CentrePoint.X, Y = CentrePoint.Y };
 
-			Canvas.SetLeft(element, afterTransform.X - size / 2);
-			Canvas.SetTop(element, afterTransform.Y - size / 2);
+        Point afterTransform = VectorTransform.Rotate(pos, angle, centre);
 
-			return element;
-		}
-		virtual public bool isHovering(double angle, double x, double y)
-		{
-			Point pos = new Point(point.X, point.Y);
-			Point centre = new Point(centrePoint.X, centrePoint.Y);
+        return Util.IsBetween(x, afterTransform.X + 15, afterTransform.X - 15)
+            && Util.IsBetween(y, afterTransform.Y + 15, afterTransform.Y - 15);
+    }
 
-			Point afterTransform = VectorTranform.Rotate(pos, angle, centre);
+    virtual public string getEdge(double angle)
+    {
+        string[] edge = { "topleft", "topright", "bottomright", "bottomleft" };
+        int index;
+        if (Point.X > CentrePoint.X)
+            if (Point.Y > CentrePoint.Y)
+                index = 2;
+            else
+                index = 1;
+        else
+            if (Point.Y > CentrePoint.Y)
+            index = 3;
+        else
+            index = 0;
 
-			return util.isBetween(x, afterTransform.X + 15, afterTransform.X - 15)
-				&& util.isBetween(y, afterTransform.Y + 15, afterTransform.Y - 15);
-		}
+        double rot = angle;
 
-		virtual public string getEdge(double angle)
-		{
-			string[] edge = { "topleft", "topright", "bottomright", "bottomleft" };
-			int index;
-			if (point.X > centrePoint.X)
-				if (point.Y > centrePoint.Y)
-					index = 2;
-				else
-					index = 1;
-			else
-				if (point.Y > centrePoint.Y)
-				index = 3;
-			else
-				index = 0;
+        if (rot > 0)
+            while (true)
+            {
+                rot -= 90;
+                if (rot < 0)
+                    break;
+                index++;
 
-			double rot = angle;
+                if (index == 4)
+                    index = 0;
+            }
+        else
+            while (true)
+            {
+                rot += 90;
+                if (rot > 0)
+                    break;
+                index--;
+                if (index == -1)
+                    index = 3;
+            };
 
-			if (rot > 0)
-				while (true)
-				{
-					rot -= 90;
-					if (rot < 0)
-						break;
-					index++;
+        return edge[index];
+    }
 
-					if (index == 4)
-						index = 0;
-				}
-			else
-				while (true)
-				{
-					rot += 90;
-					if (rot > 0)
-						break;
-					index--;
-					if (index == -1)
-						index = 3;
-				};
+    virtual public Point2D Handle(double angle, double x, double y)
+    {
+        Point2D result = new()
+        {
+            //result.X = Math.Cos(angle) * x + Math.Sin(angle) * y;
+            //result.Y = Math.Cos(angle) * y + Math.Sin(angle) * x;
+            X = x,
+            Y = y
+        };
 
-			return edge[index];
-		}
-
-		virtual public Point2D handle(double angle, double x, double y)
-		{
-			Point2D result = new Point2D();
-
-			//result.X = Math.Cos(angle) * x + Math.Sin(angle) * y;
-			//result.Y = Math.Cos(angle) * y + Math.Sin(angle) * x;
-
-			result.X = x;
-			result.Y = y;
-
-			return result;
-		}
-	}
+        return result;
+    }
 }
