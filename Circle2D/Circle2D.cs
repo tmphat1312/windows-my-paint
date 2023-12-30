@@ -1,5 +1,4 @@
 using Contract;
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,36 +19,36 @@ namespace Circle2D
 
         public void HandleStart(double x, double y)
         {
-            _leftTop.X = x;
-            _leftTop.Y = y;
+            LeftTop.X = x;
+            LeftTop.Y = y;
         }
         public void HandleEnd(double x, double y)
         {
-            _rightBottom.X = x;
-            _rightBottom.Y = y;
+            RightBottom.X = x;
+            RightBottom.Y = y;
 
-            double width = Math.Abs(_rightBottom.X - _leftTop.X);
-            double height = Math.Abs(_rightBottom.Y - _leftTop.Y);
+            double width = Math.Abs(RightBottom.X - LeftTop.X);
+            double height = Math.Abs(RightBottom.Y - LeftTop.Y);
             if (width < height)
             {
-                if (_rightBottom.Y < _leftTop.Y)
-                    _rightBottom.Y = _leftTop.Y - width;
+                if (RightBottom.Y < LeftTop.Y)
+                    RightBottom.Y = LeftTop.Y - width;
                 else
-                    _rightBottom.Y = _leftTop.Y + width;
+                    RightBottom.Y = LeftTop.Y + width;
             }
             else
             if (width > height)
             {
-                if (_rightBottom.X < _leftTop.X)
-                    _rightBottom.X = _leftTop.X - height;
-                else _rightBottom.X = _leftTop.X + height;
+                if (RightBottom.X < LeftTop.X)
+                    RightBottom.X = LeftTop.X - height;
+                else RightBottom.X = LeftTop.X + height;
             }
         }
 
         public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
         {
-            double width = Math.Abs(_rightBottom.X - _leftTop.X);
-            double height = Math.Abs(_rightBottom.Y - _leftTop.Y);
+            double width = Math.Abs(RightBottom.X - LeftTop.X);
+            double height = Math.Abs(RightBottom.Y - LeftTop.Y);
 
             var circle = new Ellipse()
             {
@@ -60,25 +59,25 @@ namespace Circle2D
                 StrokeDashArray = dash,
             };
 
-            if (_rightBottom.X > _leftTop.X && _rightBottom.Y > _leftTop.Y)
+            if (RightBottom.X > LeftTop.X && RightBottom.Y > LeftTop.Y)
             {
-                Canvas.SetLeft(circle, _leftTop.X);
-                Canvas.SetTop(circle, _leftTop.Y);
+                Canvas.SetLeft(circle, LeftTop.X);
+                Canvas.SetTop(circle, LeftTop.Y);
             }
-            else if (_rightBottom.X < _leftTop.X && _rightBottom.Y > _leftTop.Y)
+            else if (RightBottom.X < LeftTop.X && RightBottom.Y > LeftTop.Y)
             {
-                Canvas.SetLeft(circle, _rightBottom.X);
-                Canvas.SetTop(circle, _leftTop.Y);
+                Canvas.SetLeft(circle, RightBottom.X);
+                Canvas.SetTop(circle, LeftTop.Y);
             }
-            else if (_rightBottom.X > _leftTop.X && _rightBottom.Y < _leftTop.Y)
+            else if (RightBottom.X > LeftTop.X && RightBottom.Y < LeftTop.Y)
             {
-                Canvas.SetLeft(circle, _leftTop.X);
-                Canvas.SetTop(circle, _rightBottom.Y);
+                Canvas.SetLeft(circle, LeftTop.X);
+                Canvas.SetTop(circle, RightBottom.Y);
             }
             else
             {
-                Canvas.SetLeft(circle, _rightBottom.X);
-                Canvas.SetTop(circle, _rightBottom.Y);
+                Canvas.SetLeft(circle, RightBottom.X);
+                Canvas.SetTop(circle, RightBottom.Y);
             }
 
             return circle;
@@ -88,13 +87,13 @@ namespace Circle2D
         {
             return new Circle2D();
         }
-        override public CShape deepCopy()
+        override public CShape DeepCopy()
         {
             Circle2D temp = new Circle2D();
 
-            temp.LeftTop = this._leftTop.deepCopy();
-            temp.RightBottom = this._rightBottom.deepCopy();
-            temp._rotateAngle = this._rotateAngle;
+            temp.LeftTop = this.LeftTop.deepCopy();
+            temp.RightBottom = this.RightBottom.deepCopy();
+            temp.RotateAngle = this.RotateAngle;
             temp.Thickness = this.Thickness;
 
             if (this.Brush != null)

@@ -1,5 +1,4 @@
 using Contract;
-using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -19,21 +18,21 @@ namespace Rectangle2D
 
         public void HandleStart(double x, double y)
         {
-            _leftTop = new Point2D() { X = x, Y = y };
+            LeftTop = new Point2D() { X = x, Y = y };
         }
 
         public void HandleEnd(double x, double y)
         {
-            _rightBottom = new Point2D() { X = x, Y = y };
+            RightBottom = new Point2D() { X = x, Y = y };
         }
 
         public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
         {
-            var left = Math.Min(_rightBottom.X, _leftTop.X);
-            var top = Math.Min(_rightBottom.Y, _leftTop.Y);
+            var left = Math.Min(RightBottom.X, LeftTop.X);
+            var top = Math.Min(RightBottom.Y, LeftTop.Y);
 
-            var right = Math.Max(_rightBottom.X, _leftTop.X);
-            var bottom = Math.Max(_rightBottom.Y, _leftTop.Y);
+            var right = Math.Max(RightBottom.X, LeftTop.X);
+            var bottom = Math.Max(RightBottom.Y, LeftTop.Y);
 
             var width = right - left;
             var height = bottom - top;
@@ -50,7 +49,7 @@ namespace Rectangle2D
             Canvas.SetLeft(rect, left);
             Canvas.SetTop(rect, top);
 
-            RotateTransform transform = new RotateTransform(this._rotateAngle);
+            RotateTransform transform = new RotateTransform(this.RotateAngle);
             transform.CenterX = width * 1.0 / 2;
             transform.CenterY = height * 1.0 / 2;
 
@@ -64,13 +63,13 @@ namespace Rectangle2D
             return new Rectangle2D();
         }
 
-        override public CShape deepCopy()
+        override public CShape DeepCopy()
         {
             Rectangle2D temp = new Rectangle2D();
 
-            temp.LeftTop = this._leftTop.deepCopy();
-            temp.RightBottom = this._rightBottom.deepCopy();
-            temp._rotateAngle = this._rotateAngle;
+            temp.LeftTop = this.LeftTop.deepCopy();
+            temp.RightBottom = this.RightBottom.deepCopy();
+            temp.RotateAngle = this.RotateAngle;
             temp.Thickness = this.Thickness;
 
             if (this.Brush != null)

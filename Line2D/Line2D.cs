@@ -1,122 +1,131 @@
 using Contract;
-using System;
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace Line2D
 {
-	public class Line2D : CShape, IShape
-	{
-		public DoubleCollection StrokeDash { get; set; }
+    public class Line2D : CShape, IShape
+    {
+        public DoubleCollection StrokeDash { get; set; }
 
-		public SolidColorBrush Brush { get; set; }
-		public string Name => "Line";
-		public string Icon => "Images/line.png";
+        public SolidColorBrush Brush { get; set; }
+        public string Name => "Line";
+        public string Icon => "Images/line.png";
 
-		public int Thickness { get; set; }
+        public int Thickness { get; set; }
 
-		public void HandleStart(double x, double y)
-		{
-			_leftTop = new Point2D() { X = x, Y = y };
-		}
+        public void HandleStart(double x, double y)
+        {
+            LeftTop = new Point2D() { X = x, Y = y };
+        }
 
-		public void HandleEnd(double x, double y)
-		{
-			_rightBottom = new Point2D() { X = x, Y = y };
-		}
+        public void HandleEnd(double x, double y)
+        {
+            RightBottom = new Point2D() { X = x, Y = y };
+        }
 
-		public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
-		{
-			Line line = new Line()
-			{
-				X1 = _leftTop.X,
-				Y1 = _leftTop.Y,
-				X2 = _rightBottom.X,
-				Y2 = _rightBottom.Y,
-				StrokeThickness = thickness,
-				Stroke = brush,
-				StrokeDashArray = dash
-			};
+        public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
+        {
+            Line line = new Line()
+            {
+                X1 = LeftTop.X,
+                Y1 = LeftTop.Y,
+                X2 = RightBottom.X,
+                Y2 = RightBottom.Y,
+                StrokeThickness = thickness,
+                Stroke = brush,
+                StrokeDashArray = dash
+            };
 
-			var width = Math.Abs(_leftTop.X - _rightBottom.X);
-			var height = Math.Abs(_leftTop.Y - _rightBottom.Y);
+            var width = Math.Abs(LeftTop.X - RightBottom.X);
+            var height = Math.Abs(LeftTop.Y - RightBottom.Y);
 
-			RotateTransform transform = new RotateTransform(this._rotateAngle);
+            RotateTransform transform = new RotateTransform(this.RotateAngle);
 
-			line.RenderTransform = transform;
-			return line;
-		}
-		override public List<controlPoint> GetControlPoints()
-		{
-			List<controlPoint> controlPoints = new List<controlPoint>();
+            line.RenderTransform = transform;
+            return line;
+        }
+        override public List<ControlPoint> GetControlPoints()
+        {
+            List<ControlPoint> controlPoints = new List<ControlPoint>();
 
-			controlPoint diagPointTopLeft = new diagPoint();
-			diagPointTopLeft.setPoint(_leftTop.X, _leftTop.Y);
+            ControlPoint diagPointTopLeft = new DiagPoint();
+            //diagPointTopLeft.setPoint(LeftTop.X, LeftTop.Y);
+            diagPointTopLeft.Point = LeftTop;
 
-			controlPoint diagPointBottomLeft = new diagPoint();
-			diagPointBottomLeft.setPoint(_leftTop.X, RightBottom.Y);
+            ControlPoint diagPointBottomLeft = new DiagPoint();
+            //diagPointBottomLeft.setPoint(LeftTop.X, RightBottom.Y);
+            diagPointBottomLeft.Point = new Point2D() { X = LeftTop.X, Y = RightBottom.Y };
 
-			controlPoint diagPointTopRight = new diagPoint();
-			diagPointTopRight.setPoint(_rightBottom.X, _leftTop.Y);
+            ControlPoint diagPointTopRight = new DiagPoint();
+            //diagPointTopRight.setPoint(RightBottom.X, LeftTop.Y);
+            diagPointTopRight.Point = new Point2D() { X = RightBottom.X, Y = LeftTop.Y };
 
-			controlPoint diagPointBottomRight = new diagPoint();
-			diagPointBottomRight.setPoint(_rightBottom.X, _rightBottom.Y);
+            ControlPoint diagPointBottomRight = new DiagPoint();
+            //diagPointBottomRight.setPoint(RightBottom.X, RightBottom.Y);
+            diagPointBottomRight.Point = RightBottom;
 
-			//one way control Point
+            //one way control Point
 
-			controlPoint diagPointRight = new oneSidePoint();
-			diagPointRight.setPoint(_rightBottom.X, (_rightBottom.Y + _leftTop.Y) / 2);
+            ControlPoint diagPointRight = new OneSidePoint();
+            //diagPointRight.setPoint(RightBottom.X, (RightBottom.Y + LeftTop.Y) / 2);
+            diagPointRight.Point = new Point2D() { X = RightBottom.X, Y = (RightBottom.Y + LeftTop.Y) / 2 };
 
-			controlPoint diagPointLeft = new oneSidePoint();
-			diagPointLeft.setPoint(_leftTop.X, (_rightBottom.Y + _leftTop.Y) / 2);
+            ControlPoint diagPointLeft = new OneSidePoint();
+            //diagPointLeft.setPoint(LeftTop.X, (RightBottom.Y + LeftTop.Y) / 2);
+            //ControlPoint diagPointLeft = new oneSidePoint();
+            diagPointLeft.Point = new Point2D() { X = LeftTop.X, Y = (RightBottom.Y + LeftTop.Y) / 2 };
 
-			controlPoint diagPointTop = new oneSidePoint();
-			diagPointTop.setPoint((_leftTop.X + _rightBottom.X) / 2, _leftTop.Y);
 
-			controlPoint diagPointBottom = new oneSidePoint();
-			diagPointBottom.setPoint((_leftTop.X + _rightBottom.X) / 2, _rightBottom.Y);
+            ControlPoint diagPointTop = new OneSidePoint();
+            //diagPointTop.setPoint((LeftTop.X + RightBottom.X) / 2, LeftTop.Y);
+            diagPointTop.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = LeftTop.Y };
 
-			controlPoint moveControlPoint = new controlPoint();
-			moveControlPoint.setPoint((_leftTop.X + _rightBottom.X) / 2, (_leftTop.Y + _rightBottom.Y) / 2);
-			moveControlPoint.type = "move";
+            ControlPoint diagPointBottom = new OneSidePoint();
+            //diagPointBottom.setPoint((LeftTop.X + RightBottom.X) / 2, RightBottom.Y);
+            diagPointBottom.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = RightBottom.Y };
 
-			controlPoints.Add(diagPointTopLeft);
-			controlPoints.Add(diagPointTopRight);
-			controlPoints.Add(diagPointBottomLeft);
-			controlPoints.Add(diagPointBottomRight);
+            ControlPoint moveControlPoint = new ControlPoint();
+            //moveControlPoint.setPoint((LeftTop.X + RightBottom.X) / 2, (LeftTop.Y + RightBottom.Y) / 2);
+            moveControlPoint.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = (LeftTop.Y + RightBottom.Y) / 2 };
+            moveControlPoint.Type = "move";
 
-			controlPoints.Add(diagPointRight);
-			controlPoints.Add(diagPointLeft);
-			controlPoints.Add(diagPointBottom);
-			controlPoints.Add(diagPointTop);
+            controlPoints.Add(diagPointTopLeft);
+            controlPoints.Add(diagPointTopRight);
+            controlPoints.Add(diagPointBottomLeft);
+            controlPoints.Add(diagPointBottomRight);
 
-			controlPoints.Add(moveControlPoint);
+            controlPoints.Add(diagPointRight);
+            controlPoints.Add(diagPointLeft);
+            controlPoints.Add(diagPointBottom);
+            controlPoints.Add(diagPointTop);
 
-			return controlPoints;
-		}
+            controlPoints.Add(moveControlPoint);
 
-		public IShape Clone()
-		{
-			return new Line2D();
-		}
-		override public CShape deepCopy()
-		{
-			Line2D temp = new Line2D();
+            return controlPoints;
+        }
 
-			temp.LeftTop = this._leftTop.deepCopy();
-			temp.RightBottom = this._rightBottom.deepCopy();
-			temp._rotateAngle = this._rotateAngle;
-			temp.Thickness = this.Thickness;
+        public IShape Clone()
+        {
+            return new Line2D();
+        }
+        override public CShape DeepCopy()
+        {
+            Line2D temp = new Line2D();
 
-			if (this.Brush != null)
-				temp.Brush = this.Brush.Clone();
+            temp.LeftTop = this.LeftTop.deepCopy();
+            temp.RightBottom = this.RightBottom.deepCopy();
+            temp.RotateAngle = this.RotateAngle;
+            temp.Thickness = this.Thickness;
 
-			if (this.StrokeDash != null)
-				temp.StrokeDash = this.StrokeDash.Clone();
+            if (this.Brush != null)
+                temp.Brush = this.Brush.Clone();
 
-			return temp;
-		}
-	}
+            if (this.StrokeDash != null)
+                temp.StrokeDash = this.StrokeDash.Clone();
+
+            return temp;
+        }
+    }
 }

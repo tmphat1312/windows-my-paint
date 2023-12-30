@@ -9,13 +9,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Icons\add.png" />
     <None Remove="Assets\Icons\copy.png" />
     <None Remove="Assets\Icons\delete.png" />
     <None Remove="Assets\Icons\drawing-mode.png" />
     <None Remove="Assets\Icons\edit-mode.png" />
+    <None Remove="Assets\Icons\export.png" />
+    <None Remove="Assets\Icons\line-thickness.png" />
+    <None Remove="Assets\Icons\new.png" />
+    <None Remove="Assets\Icons\open.png" />
     <None Remove="Assets\Icons\paste.png" />
+    <None Remove="Assets\Icons\photo.png" />
     <None Remove="Assets\Icons\redo.png" />
+    <None Remove="Assets\Icons\save.png" />
     <None Remove="Assets\Icons\undo.png" />
+    <None Remove="Assets\Shapes\circle.png" />
+    <None Remove="Assets\Shapes\ellipse.png" />
+    <None Remove="Assets\Shapes\line.png" />
+    <None Remove="Assets\Shapes\rectangle.png" />
+    <None Remove="Assets\Shapes\square.png" />
     <None Remove="Images\circle.png" />
     <None Remove="Images\color_wheel.png" />
     <None Remove="Images\copy.png" />
@@ -45,6 +57,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\Icons\photo.png" />
+    <Resource Include="Assets\Shapes\circle.png" />
+    <Resource Include="Assets\Shapes\ellipse.png" />
+    <Resource Include="Assets\Shapes\line.png" />
+    <Resource Include="Assets\Shapes\rectangle.png" />
+    <Resource Include="Assets\Shapes\square.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.5.1" />
     <PackageReference Include="Fluent.Ribbon" Version="10.0.4" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -60,12 +81,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\Icons\add.png" />
     <Resource Include="Assets\Icons\copy.png" />
     <Resource Include="Assets\Icons\delete.png" />
     <Resource Include="Assets\Icons\drawing-mode.png" />
     <Resource Include="Assets\Icons\edit-mode.png" />
+    <Resource Include="Assets\Icons\export.png" />
+    <Resource Include="Assets\Icons\new.png" />
+    <Resource Include="Assets\Icons\open.png" />
     <Resource Include="Assets\Icons\paste.png" />
     <Resource Include="Assets\Icons\redo.png" />
+    <Resource Include="Assets\Icons\save.png" />
     <Resource Include="Assets\Icons\undo.png" />
     <Resource Include="Images\circle.png" />
     <Resource Include="Images\color_wheel.png" />
