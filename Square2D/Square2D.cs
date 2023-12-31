@@ -26,9 +26,9 @@ public class Square2D : PShape, IShape
         RightBottom.X = x;
         RightBottom.Y = y;
 
-
         double width = Math.Abs(RightBottom.X - LeftTop.X);
         double height = Math.Abs(RightBottom.Y - LeftTop.Y);
+
         if (width < height)
         {
             if (RightBottom.Y < LeftTop.Y)
@@ -43,7 +43,6 @@ public class Square2D : PShape, IShape
                 RightBottom.X = LeftTop.X - height;
             else RightBottom.X = LeftTop.X + height;
         }
-
     }
 
     public UIElement Draw(SolidColorBrush brush, int thickness, DoubleCollection dash)
@@ -81,9 +80,11 @@ public class Square2D : PShape, IShape
             Canvas.SetTop(square, RightBottom.Y);
         }
 
-        RotateTransform transform = new RotateTransform(this.RotateAngle);
-        transform.CenterX = width * 1.0 / 2;
-        transform.CenterY = height * 1.0 / 2;
+        RotateTransform transform = new(this.RotateAngle)
+        {
+            CenterX = width * 1.0 / 2,
+            CenterY = height * 1.0 / 2
+        };
 
         square.RenderTransform = transform;
 
@@ -94,14 +95,16 @@ public class Square2D : PShape, IShape
     {
         return new Square2D();
     }
+
     override public PShape DeepCopy()
     {
-        Square2D temp = new Square2D();
-
-        temp.LeftTop = this.LeftTop.DeepCopy();
-        temp.RightBottom = this.RightBottom.DeepCopy();
-        temp.RotateAngle = this.RotateAngle;
-        temp.Thickness = this.Thickness;
+        Square2D temp = new()
+        {
+            LeftTop = this.LeftTop.DeepCopy(),
+            RightBottom = this.RightBottom.DeepCopy(),
+            RotateAngle = this.RotateAngle,
+            Thickness = this.Thickness
+        };
 
         if (this.Brush != null)
             temp.Brush = this.Brush.Clone();
