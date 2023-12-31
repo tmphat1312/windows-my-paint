@@ -109,15 +109,27 @@
                 
                 <!--Clipboard-->
                 <Fluent:RibbonGroupBox Header="Clipboard">
+                    <Fluent:Button Name="copyButton" Header="Copy" Click="CopyButton_Click" ToolTip="Ctrl C">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/copy.png" ></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
+                    <Fluent:Button Name="CutButton" Header="Cut" Click="CutButton_Click" ToolTip="Ctrl C">
+                        <Fluent:Button.LargeIcon>
+                            <Image Source="Assets/Icons/cut.png" ></Image>
+                        </Fluent:Button.LargeIcon>
+                    </Fluent:Button>
+
                     <Fluent:Button Name="pasteButton" Header="Paste" Click="PasteButton_Click" ToolTip="Ctrl V">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/paste.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Name="copyButton" Header="Copy" Click="CopyButton_Click" ToolTip="Ctrl C">
+                    <Fluent:Button Name="DuplicateButton" Header="Duplicate" Click="DuplicateButton_Click" ToolTip="Ctrl D">
                         <Fluent:Button.LargeIcon>
-                            <Image Source="Assets/Icons/copy.png" ></Image>
+                            <Image Source="Assets/Icons/duplicate.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
                 </Fluent:RibbonGroupBox>
@@ -244,21 +256,25 @@
         </Fluent:StatusBar>
 
         <!--Drawing area-->
-        <Grid Margin="4" Width="960" Height="540">
-            <Border 
+        <Grid Margin="4" d:Width="960" d:Height="540">
+            <Border  
                 x:Name="DrawingHandlerArea"
                 Background="Transparent" 
                 IsHitTestVisible="True" 
-                MouseDown="drawingArea_MouseDown" 
-                MouseUp="drawingArea_MouseUp"
-                MouseMove="drawingArea_MouseMove" 
-                MouseEnter="drawingArea_MouseEnter" 
-                MouseLeave="drawingArea_MouseLeave"/>
+                MouseLeave="DrawingArea_MouseLeave"
+                MouseDown="DrawingArea_MouseDown" 
+                MouseUp="DrawingArea_MouseUp"
+                MouseMove="DrawingArea_MouseMove"/>
             <Canvas 
                 Name="DrawingArea" 
                 IsHitTestVisible="False" 
                 ClipToBounds="True" 
                 Background="White" />
+            <Canvas 
+                 Name="PreviewDrawingArea" 
+                 IsHitTestVisible="False" 
+                 ClipToBounds="True" 
+                 Background="Transparent" />
         </Grid>
     </DockPanel>
 </Fluent:RibbonWindow>
