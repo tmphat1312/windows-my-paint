@@ -25,10 +25,8 @@ public class Rectangle2D : PShape, IShape
     {
         var left = Math.Min(RightBottom.X, LeftTop.X);
         var top = Math.Min(RightBottom.Y, LeftTop.Y);
-
         var right = Math.Max(RightBottom.X, LeftTop.X);
         var bottom = Math.Max(RightBottom.Y, LeftTop.Y);
-
         var width = right - left;
         var height = bottom - top;
 
@@ -44,9 +42,11 @@ public class Rectangle2D : PShape, IShape
         Canvas.SetLeft(rect, left);
         Canvas.SetTop(rect, top);
 
-        RotateTransform transform = new RotateTransform(this.RotateAngle);
-        transform.CenterX = width * 1.0 / 2;
-        transform.CenterY = height * 1.0 / 2;
+        RotateTransform transform = new(this.RotateAngle)
+        {
+            CenterX = width * 1.0 / 2,
+            CenterY = height * 1.0 / 2
+        };
 
         rect.RenderTransform = transform;
 

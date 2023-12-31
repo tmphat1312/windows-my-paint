@@ -1,16 +1,14 @@
 ﻿using Contract;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Diagnostics;
-using System.Numerics;
-using Vector = System.Windows.Vector;
-using System.Security.Cryptography;
 
 namespace Paint;
 
@@ -64,31 +62,194 @@ public partial class MainWindow : Fluent.RibbonWindow
     {
         AllShapes = (List<IShape>)_factory.Shapes;
 
-        #region Update UI element source
-        SolidColorsListView.ItemsSource = ViewModel.Colors;
-        ShapeListView.ItemsSource = AllShapes;
-        #endregion
-
         if (AllShapes.Count == 0)
         {
-            // TODO: handle this exception with a dialog
-            throw new Exception("No shape to run the application");
+            MessageBox.Show("No shape to run the application");
+            Close();
+            return;
         }
 
-        SelectedShapeName = _factory.ShapeNames.First();
-        Preview = _factory.Factor(SelectedShapeName);
+        #region Update UI element source
+        SolidColorsListView.ItemsSource = ViewModel.ColorOptions;
+        ShapeListView.ItemsSource = AllShapes;
+        SizeComboBox.ItemsSource = ViewModel.ThicknessOptions;
+        DashComboBox.ItemsSource = ViewModel.DashOptions;
+        UpdateSelectedShape(AllShapes.First());
+        UpdateModeUI();
+        #endregion
 
         KeyDown += RegisterKeyBoardShortCuts;
     }
 
-    // TODO: Add more shortcuts for commands
+    #region Utilities methods
+    private void UpdateSelectedShape(IShape selectedShape)
+    {
+        Preview = selectedShape;
+        SelectedShapeName = selectedShape.Name;
+        CurrentShapeText.Text = selectedShape.Name;
+    }
+
+    private void UpdateModeUI()
+    {
+        DrawingModeButton.Visibility = Visibility.Collapsed;
+        EditModeButton.Visibility = Visibility.Collapsed;
+
+        if (IsEditMode)
+        {
+            DrawingHandlerArea.Cursor = Cursors.Hand;
+            DrawingModeButton.Visibility = Visibility.Visible;
+            CurrentModeText.Text = "Editing";
+        }
+        else
+        {
+            DrawingHandlerArea.Cursor = Cursors.Cross;
+            EditModeButton.Visibility = Visibility.Visible;
+            CurrentModeText.Text = "Drawing";
+        }
+    }
+
+    private void DrawOnCanvas()
+    {
+        DrawingArea.Children.Clear();
+
+        foreach (var shape in Shapes)
+        {
+            var element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash!);
+            DrawingArea.Children.Add(element);
+        }
+
+        if (IsEditMode && ChosenShapes.Count > 0)
+        {
+            ChosenShapes.ForEach(shape =>
+            {
+                PShape chosedShape = (PShape)shape;
+                DrawingArea.Children.Add(chosedShape.ControlOutline());
+
+                if (ChosenShapes.Count == 1)
+                {
+                    List<ControlPoint> ctrlPoints = chosedShape.GetControlPoints();
+                    this.CtrlPoint = ctrlPoints;
+
+                    ctrlPoints.ForEach(K =>
+                    {
+                        DrawingArea.Children.Add(K.DrawPoint(chosedShape.RotateAngle, chosedShape.GetCenterPoint()));
+                    });
+                }
+            });
+        }
+    }
+
+    private void ResetToDefault()
+    {
+        IsSaved = false;
+        IsDrawing = false;
+        IsEditMode = false;
+
+        ChosenShapes.Clear();
+        Shapes.Clear();
+
+        SelectedShapeName = AllShapes[0].Name;
+        Preview = _factory.Factor(SelectedShapeName);
+
+        CurrentThickness = 1;
+        CurrentColorBrush = new SolidColorBrush(Colors.Red);
+        CurrentDash = null;
+
+        BackgroundImagePath = "";
+
+        DashComboBox.SelectedIndex = 0;
+        SizeComboBox.SelectedIndex = 0;
+
+        DrawingArea.Children.Clear();
+        DrawingArea.Background = new SolidColorBrush(Colors.White);
+    }
+
+    private void AddBackground(string path)
+    {
+        BackgroundImagePath = path;
+
+        ImageBrush brush = new()
+        {
+            ImageSource = new BitmapImage(new Uri(path, UriKind.Absolute)),
+            Stretch = Stretch.UniformToFill,
+        };
+
+        DrawingArea.Background = brush;
+    }
+    #endregion
+
+
     #region Command shortcuts
     private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
     {
-        // Ctrl + Z == Undo
-        if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.Z))
+        if (Keyboard.IsKeyDown(Key.LeftCtrl))
         {
-            undoButton_Click(sender, e);
+            // Ctrl + Z == Undo
+            if (Keyboard.IsKeyDown(Key.Z))
+            {
+                UndoButton_Click(sender, e);
+            }
+            // Ctrl + Y == Redo
+            else if (Keyboard.IsKeyDown(Key.Y))
+            {
+                RedoButton_Click(sender, e);
+            }
+            // Ctrl + C == Copy
+            else if (Keyboard.IsKeyDown(Key.C))
+            {
+                CopyButton_Click(sender, e);
+            }
+            // Ctrl + V == Paste
+            else if (Keyboard.IsKeyDown(Key.V))
+            {
+                PasteButton_Click(sender, e);
+            }
+            // Ctrl + A == Select all
+            else if (Keyboard.IsKeyDown(Key.A))
+            {
+                ChosenShapes.Clear();
+                Shapes.ForEach(K =>
+                {
+                    ChosenShapes.Add(K);
+                });
+                DrawOnCanvas();
+            }
+            // Ctrl + S == Save
+            else if (Keyboard.IsKeyDown(Key.S))
+            {
+                SaveFileButton_Click(sender, e);
+            }
+            // Ctrl + O == Open
+            else if (Keyboard.IsKeyDown(Key.O))
+            {
+                OpenFileButton_Click(sender, e);
+            }
+            // Ctrl + N == New
+            else if (Keyboard.IsKeyDown(Key.N))
+            {
+                CreateNewButton_Click(sender, e);
+            }
+            // Ctrl + E == Edit mode
+            else if (Keyboard.IsKeyDown(Key.E))
+            {
+                ChangeMode_Click(sender, e);
+            }
+            // Ctrl + D == Drawing mode
+            else if (Keyboard.IsKeyDown(Key.D))
+            {
+                ChangeMode_Click(sender, e);
+            }
+            // Ctrl + X == Cut
+            else if (Keyboard.IsKeyDown(Key.X))
+            {
+                CopyButton_Click(sender, e);
+                Delete_Click(sender, e);
+            }
+        }
+
+        if (Keyboard.IsKeyDown(Key.Delete))
+        {
+            Delete_Click(sender, e);
         }
     }
     #endregion
@@ -111,215 +272,101 @@ public partial class MainWindow : Fluent.RibbonWindow
     }
     #endregion
 
-
-    private void createNewButton_Click(object sender, RoutedEventArgs e)
+    #region Toolbox controls (Shapes, Size, Dash)
+    private void ShapeListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (BackgroundImagePath.Length > 0 && Shapes.Count == 0)
-        {
-            BackgroundImagePath = "";
-            drawingArea.Background = new SolidColorBrush(Colors.White);
-        }
-        if (Shapes.Count == 0)
-        {
-            // MessageBox.Show("This canvas is empty");
-            return;
-        }
-
-
-        if (IsSaved)
-        {
-            ResetToDefault();
-            return;
-        }
-
-        var result = MessageBox.Show("Do you want to save current file?", "Unsaved changes detected", MessageBoxButton.YesNoCancel);
-
-        if (MessageBoxResult.Yes == result)
-        {
-            // save then reset
-
-            // save 
-            var settings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.Objects
-            };
-
-            var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
-
-            // experience 
-            StringBuilder builder = new StringBuilder();
-            builder.Append(serializedShapeList).Append("\n").Append($"{BackgroundImagePath}");
-            string content = builder.ToString();
-
-
-            var dialog = new System.Windows.Forms.SaveFileDialog();
-
-            dialog.Filter = "JSON (*.json)|*.json";
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                string path = dialog.FileName;
-                File.WriteAllText(path, content);
-            }
-
-            // reset
-            ResetToDefault();
-            IsSaved = true;
-        }
-        else if (MessageBoxResult.No == result)
-        {
-            //reset
-            ResetToDefault();
-            return;
-        }
-        else if (MessageBoxResult.Cancel == result)
-        {
-            return;
-        }
-
-
+        var selectedShape = (IShape)ShapeListView.SelectedItem;
+        UpdateSelectedShape(selectedShape);
     }
 
-    private void openFileButton_Click(object sender, RoutedEventArgs e)
+    private void SizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-
-        var dialog = new System.Windows.Forms.OpenFileDialog();
-
-        dialog.Filter = "JSON (*.json)|*.json";
-
-        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-            string path = dialog.FileName;
-
-            string[] content = File.ReadAllLines(path);
-
-            string background = "";
-            string json = content[0];
-            if (content.Length > 1)
-                background = content[1];
-            //string json = File.ReadAllText(path);
-
-
-            var settings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.Objects
-            };
-
-            Shapes.Clear();
-            BackgroundImagePath = background;
-            drawingArea.Children.Clear();
-
-            List<IShape> containers = JsonConvert.DeserializeObject<List<IShape>>(json, settings);
-
-            foreach (var item in containers)
-                Shapes.Add(item);
-
-            if (BackgroundImagePath.Length != 0)
-            {
-                ImageBrush brush = new ImageBrush();
-                brush.ImageSource = new BitmapImage(new Uri(BackgroundImagePath, UriKind.Absolute));
-                drawingArea.Background = brush;
-            }
-
-            //MessageBox.Show($"{background}");
-        }
-
-        foreach (var shape in Shapes)
-        {
-            var element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
-            drawingArea.Children.Add(element);
-        }
-
-
+        var selectedSize = SizeComboBox.SelectedItem as ThicknessOption;
+        CurrentThickness = selectedSize!.Value;
     }
 
-    private void saveFileButton_Click(object sender, RoutedEventArgs e)
+    private void DashComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var settings = new JsonSerializerSettings()
+        var selectedDash = DashComboBox.SelectedItem as DashOption;
+        CurrentDash = selectedDash!.Value;
+    }
+    #endregion
+
+    #region Toolbox controls (Mode, Undo, Redo, Delete, Copy, Paste)
+    private void ChangeMode_Click(object sender, RoutedEventArgs e)
+    {
+        this.IsEditMode = !this.IsEditMode;
+
+        UpdateModeUI();
+
+        if (!this.IsEditMode)
         {
-            TypeNameHandling = TypeNameHandling.Objects
-        };
-
-        var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
-
-        // experience 
-        StringBuilder builder = new StringBuilder();
-        builder.Append(serializedShapeList).Append("\n").Append($"{BackgroundImagePath}");
-        string content = builder.ToString();
-
-
-        var dialog = new System.Windows.Forms.SaveFileDialog();
-
-        dialog.Filter = "JSON (*.json)|*.json";
-
-        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-        {
-            string path = dialog.FileName;
-            File.WriteAllText(path, content);
-            IsSaved = true;
+            this.ChosenShapes.Clear();
         }
     }
 
-    private void SaveCanvasToImage(Canvas canvas, string filename, string extension = "png")
+    private void Delete_Click(object sender, RoutedEventArgs e)
     {
-        RenderTargetBitmap renderBitmap = new RenderTargetBitmap(
-         (int)canvas.Width, (int)canvas.Height,
-         96d, 96d, PixelFormats.Pbgra32);
-        // needed otherwise the image output is black
-        canvas.Measure(new Size((int)canvas.Width, (int)canvas.Height));
-        canvas.Arrange(new Rect(new Size((int)canvas.Width, (int)canvas.Height)));
-
-        renderBitmap.Render(canvas);
-
-        //JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-
-
-
-
-        switch (extension)
+        if (this.IsEditMode)
         {
-            case "png":
-                PngBitmapEncoder pngEncoder = new PngBitmapEncoder();
-                pngEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+            ChosenShapes.ForEach(k =>
+            {
+                Shapes.Remove(k);
+            });
 
-                using (FileStream file = File.Create(filename))
-                {
-                    pngEncoder.Save(file);
-                }
-                break;
-            case "jpeg":
-                JpegBitmapEncoder jpegEncoder = new JpegBitmapEncoder();
-                jpegEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-                using (FileStream file = File.Create(filename))
-                {
-                    jpegEncoder.Save(file);
-                }
-                break;
-            case "tiff":
-                TiffBitmapEncoder tiffEncoder = new TiffBitmapEncoder();
-                tiffEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-                using (FileStream file = File.Create(filename))
-                {
-                    tiffEncoder.Save(file);
-                }
-                break;
-            case "bmp":
-
-                BmpBitmapEncoder bitmapEncoder = new BmpBitmapEncoder();
-                bitmapEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
-
-                using (FileStream file = File.Create(filename))
-                {
-                    bitmapEncoder.Save(file);
-                }
-                break;
-            default:
-                break;
+            ChosenShapes.Clear();
+            DrawOnCanvas();
         }
     }
 
+    private void CopyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (this.IsEditMode)
+        {
+            ChosenShapes.ForEach(K =>
+            {
+                CopyBuffers.Add(K);
+            });
+        }
+    }
+
+    private void PasteButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (this.IsEditMode)
+        {
+            CopyBuffers.ForEach(K =>
+            {
+                PShape temp = (PShape)K;
+                Shapes.Add((IShape)temp.DeepCopy());
+            });
+            DrawOnCanvas();
+        }
+    }
+
+    private void UndoButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (Buffer.Count == 0)
+            return;
+
+        int lastIndex = Shapes.Count - 1;
+        Buffer.Push(Shapes[lastIndex]);
+        Shapes.RemoveAt(lastIndex);
+
+        DrawOnCanvas();
+    }
+
+    private void RedoButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (Buffer.Count == 0)
+            return;
+
+        // Pop the last shape from buffer and add it to final list, then re-draw canvas
+        Shapes.Add(Buffer.Pop());
+        DrawOnCanvas();
+    }
+    #endregion
+
+    #region Drawing Area
     private void drawingArea_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (this.AllShapes.Count == 0)
@@ -330,14 +377,14 @@ public partial class MainWindow : Fluent.RibbonWindow
             if (Mouse.RightButton == MouseButtonState.Pressed)
             {
                 ChosenShapes.Clear();
-                RedrawCanvas();
+                DrawOnCanvas();
                 return;
             }
 
-            Point currentPos = e.GetPosition(drawingArea);
+            Point currentPos = e.GetPosition(DrawingArea);
             if (ChosenShapes.Count > 0)
             {
-                CShape chosen = (CShape)ChosenShapes[0];
+                PShape chosen = (PShape)ChosenShapes[0];
                 if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
                 {
                     for (int i = 0; i < CtrlPoint.Count; i++)
@@ -354,7 +401,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         }
 
         IsDrawing = true;
-        Point pos = e.GetPosition(drawingArea);
+        Point pos = e.GetPosition(DrawingArea);
 
         Preview.HandleStart(pos.X, pos.Y);
     }
@@ -367,7 +414,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         if (ChosenShapes.Count == 1)
         {
             PShape shape1 = (PShape)ChosenShapes[0];
-            Point currentPos1 = e.GetPosition(drawingArea);
+            Point currentPos1 = e.GetPosition(DrawingArea);
             for (int i = 0; i < CtrlPoint.Count; i++)
             {
                 if (CtrlPoint[i].IsHovering(shape1.RotateAngle, currentPos1.X, currentPos1.Y) || CtrlPoint[i].IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape1.RotateAngle))
@@ -417,7 +464,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             if (Mouse.LeftButton != MouseButtonState.Pressed)
                 return;
 
-            Point currentPos = e.GetPosition(drawingArea);
+            Point currentPos = e.GetPosition(DrawingArea);
 
             double dx, dy;
 
@@ -630,28 +677,28 @@ public partial class MainWindow : Fluent.RibbonWindow
             PreviousEditedX = currentPos.X;
             PreviousEditedY = currentPos.Y;
 
-            RedrawCanvas();
+            DrawOnCanvas();
             return;
         }
 
         if (IsDrawing)
         {
-            Point pos = e.GetPosition(drawingArea);
+            Point pos = e.GetPosition(DrawingArea);
 
             Preview.HandleEnd(pos.X, pos.Y);
 
             // delete old shapes
-            drawingArea.Children.Clear();
+            DrawingArea.Children.Clear();
 
             // redraw all shapes
             foreach (var shape in Shapes)
             {
                 UIElement element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
-                drawingArea.Children.Add(element);
+                DrawingArea.Children.Add(element);
             }
 
             // lastly, draw preview object 
-            drawingArea.Children.Add(Preview.Draw(CurrentColorBrush, CurrentThickness, CurrentDash));
+            DrawingArea.Children.Add(Preview.Draw(CurrentColorBrush, CurrentThickness, CurrentDash));
         }
     }
 
@@ -668,7 +715,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             if (e.ChangedButton != MouseButton.Left)
                 return;
 
-            Point currentPos = e.GetPosition(drawingArea);
+            Point currentPos = e.GetPosition(DrawingArea);
             for (int i = this.Shapes.Count - 1; i >= 0; i--)
             {
                 PShape temp = (PShape)Shapes[i];
@@ -687,7 +734,7 @@ public partial class MainWindow : Fluent.RibbonWindow
                         this.ChosenShapes.Add(Shapes[i]);
                     }
 
-                    RedrawCanvas();
+                    DrawOnCanvas();
                     break;
                 }
             }
@@ -701,7 +748,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             return;
         }
 
-        Point pos = e.GetPosition(drawingArea);
+        Point pos = e.GetPosition(DrawingArea);
         Preview.HandleEnd(pos.X, pos.Y);
 
         // Ddd to shapes list & save it color + thickness
@@ -718,7 +765,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 
         // Re-draw the canvas
 
-        RedrawCanvas();
+        DrawOnCanvas();
     }
 
     private void drawingArea_MouseLeave(object sender, MouseEventArgs e)
@@ -740,7 +787,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             // but e is not MouseButtonEventArgs (;-;)
             IsDrawing = false;
 
-            Point pos = e.GetPosition(drawingArea);
+            Point pos = e.GetPosition(DrawingArea);
             Preview.HandleEnd(pos.X, pos.Y);
 
             // Ddd to shapes list & save it color + thickness
@@ -756,235 +803,234 @@ public partial class MainWindow : Fluent.RibbonWindow
             Preview = _factory.Factor(SelectedShapeName);
 
             // Re-draw the canvas
-            RedrawCanvas();
+            DrawOnCanvas();
+        }
+    }
+    #endregion
+
+    #region File Actions
+    // TODO: Update this method
+    private void CreateNewButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (BackgroundImagePath.Length > 0 && Shapes.Count == 0)
+        {
+            BackgroundImagePath = "";
+            DrawingArea.Background = new SolidColorBrush(Colors.White);
+        }
+        if (Shapes.Count == 0)
+        {
+            return;
+        }
+
+
+        if (IsSaved)
+        {
+            ResetToDefault();
+            return;
+        }
+
+        var result = MessageBox.Show("Do you want to save current file?", "Unsaved changes detected", MessageBoxButton.YesNoCancel);
+
+        if (MessageBoxResult.Yes == result)
+        {
+            // save then reset
+
+            // save 
+            var settings = new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.Objects
+            };
+
+            var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
+
+            // experience 
+            StringBuilder builder = new StringBuilder();
+            builder.Append(serializedShapeList).Append("\n").Append($"{BackgroundImagePath}");
+            string content = builder.ToString();
+
+
+            var dialog = new System.Windows.Forms.SaveFileDialog();
+
+            dialog.Filter = "JSON (*.json)|*.json";
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string path = dialog.FileName;
+                File.WriteAllText(path, content);
+            }
+
+            // reset
+            ResetToDefault();
+            IsSaved = true;
+        }
+        else if (MessageBoxResult.No == result)
+        {
+            //reset
+            ResetToDefault();
+            return;
+        }
+        else if (MessageBoxResult.Cancel == result)
+        {
+            return;
         }
     }
 
-    private void sizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OpenFileButton_Click(object sender, RoutedEventArgs e)
     {
-        int index = sizeComboBox.SelectedIndex;
-
-        switch (index)
+        var dialog = new System.Windows.Forms.OpenFileDialog
         {
-            case 0:
-                CurrentThickness = 1;
+            Filter = "JSON (*.json)|*.json"
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            string path = dialog.FileName;
+
+            string[] content = File.ReadAllLines(path);
+
+            string background = "";
+            string json = content[0];
+
+            if (content.Length > 1)
+            {
+                background = content[1];
+            }
+
+            var settings = new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.Objects
+            };
+
+            Shapes.Clear();
+            ChosenShapes.Clear();
+            List<IShape> savedShapes = JsonConvert.DeserializeObject<List<IShape>>(json, settings);
+
+            foreach (var item in savedShapes!)
+            {
+                Shapes.Add(item);
+            }
+
+            if (!string.IsNullOrEmpty(background))
+            {
+                AddBackground(background);
+            }
+        }
+
+        DrawOnCanvas();
+    }
+
+    private void SaveFileButton_Click(object sender, RoutedEventArgs e)
+    {
+        var settings = new JsonSerializerSettings()
+        {
+            TypeNameHandling = TypeNameHandling.Objects
+        };
+
+        var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
+
+        StringBuilder builder = new();
+        builder.Append(serializedShapeList).Append('\n').Append($"{BackgroundImagePath}");
+        string content = builder.ToString();
+
+        var dialog = new System.Windows.Forms.SaveFileDialog
+        {
+            Filter = "JSON (*.json)|*.json"
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            string path = dialog.FileName;
+            File.WriteAllText(path, content);
+            IsSaved = true;
+        }
+    }
+
+    private void SaveCanvasToImage(string filename, string extension = "png")
+    {
+        RenderTargetBitmap renderBitmap = new(
+         (int)DrawingArea.ActualWidth, (int)DrawingArea.ActualHeight,
+         96d, 96d, PixelFormats.Pbgra32);
+
+        DrawingArea.Measure(new Size((int)DrawingArea.ActualWidth, (int)DrawingArea.ActualHeight));
+        DrawingArea.Arrange(new Rect(new Size((int)DrawingArea.ActualWidth, (int)DrawingArea.ActualHeight)));
+
+        renderBitmap.Render(DrawingArea);
+
+        switch (extension)
+        {
+            case "png":
+                PngBitmapEncoder pngEncoder = new();
+                pngEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                using (FileStream file = File.Create(filename))
+                {
+                    pngEncoder.Save(file);
+                }
                 break;
-            case 1:
-                CurrentThickness = 2;
+            case "jpeg":
+                JpegBitmapEncoder jpegEncoder = new();
+                jpegEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                using (FileStream file = File.Create(filename))
+                {
+                    jpegEncoder.Save(file);
+                }
                 break;
-            case 2:
-                CurrentThickness = 3;
+            case "tiff":
+                TiffBitmapEncoder tiffEncoder = new();
+                tiffEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                using (FileStream file = File.Create(filename))
+                {
+                    tiffEncoder.Save(file);
+                }
                 break;
-            case 3:
-                CurrentThickness = 5;
+            case "bmp":
+
+                BmpBitmapEncoder bitmapEncoder = new();
+                bitmapEncoder.Frames.Add(BitmapFrame.Create(renderBitmap));
+
+                using (FileStream file = File.Create(filename))
+                {
+                    bitmapEncoder.Save(file);
+                }
                 break;
             default:
                 break;
         }
     }
 
-    private void ShapeListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this.AllShapes.Count == 0)
-            return;
-
-        var index = ShapeListView.SelectedIndex;
-
-        SelectedShapeName = AllShapes[index].Name;
-
-        Preview = _factory.Factor(SelectedShapeName);
-    }
-
-    private void exportButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new System.Windows.Forms.SaveFileDialog();
-        dialog.Filter = "PNG (*.png)|*.png| JPEG (*.jpeg)|*.jpeg| BMP (*.bmp)|*.bmp | TIFF (*.tiff)|*.tiff";
+        var dialog = new System.Windows.Forms.SaveFileDialog
+        {
+            Filter = "PNG (*.png)|*.png| JPEG (*.jpeg)|*.jpeg| BMP (*.bmp)|*.bmp | TIFF (*.tiff)|*.tiff"
+        };
 
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
             string path = dialog.FileName;
-            string extension = path.Substring(path.LastIndexOf('\\') + 1).Split('.')[1];
+            string extension = path[(path.LastIndexOf('\\') + 1)..].Split('.')[1];
 
-            SaveCanvasToImage(drawingArea, path, extension);
+            SaveCanvasToImage(path, extension);
         }
+
         IsSaved = true;
     }
 
-    private void dashComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void AddPictureButton_Click(object sender, RoutedEventArgs e)
     {
-        int index = dashComboBox.SelectedIndex;
-
-        switch (index)
+        var dialog = new System.Windows.Forms.OpenFileDialog
         {
-            case 0:
-                CurrentDash = null;
-                break;
-            case 1:
-                CurrentDash = [1, 1];
-                break;
-            case 2:
-                CurrentDash = [6, 1];
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void importButton_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new System.Windows.Forms.OpenFileDialog();
-        dialog.Filter = "PNG (*.png)|*.png| JPEG (*.jpeg)|*.jpeg| BMP (*.bmp)|*.bmp | TIFF (*.tiff)|*.tiff";
+            Filter = "PNG (*.png)|*.png| JPEG (*.jpeg)|*.jpeg| BMP (*.bmp)|*.bmp | TIFF (*.tiff)|*.tiff"
+        };
 
         if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
             string path = dialog.FileName;
 
-            BackgroundImagePath = path;
-
-            ImageBrush brush = new ImageBrush();
-            brush.ImageSource = new BitmapImage(new Uri(path, UriKind.Absolute));
-            drawingArea.Background = brush;
+            AddBackground(path);
         }
     }
-
-    private void ResetToDefault()
-    {
-        if (this.AllShapes.Count == 0)
-            return;
-
-        IsSaved = false;
-        IsDrawing = false;
-        IsEditMode = false;
-
-        ChosenShapes.Clear();
-
-        Shapes.Clear();
-
-        SelectedShapeName = AllShapes[0].Name;
-        Preview = _factory.Factor(SelectedShapeName);
-
-        CurrentThickness = 1;
-        CurrentColorBrush = new SolidColorBrush(Colors.Red);
-        CurrentDash = null;
-
-        BackgroundImagePath = "";
-
-        dashComboBox.SelectedIndex = 0;
-        sizeComboBox.SelectedIndex = 0;
-
-        EditMode.Header = "Draw Mode";
-        drawingArea.Children.Clear();
-        drawingArea.Background = new SolidColorBrush(Colors.White);
-    }
-
-    private void undoButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (Shapes.Count == 0)
-            return;
-        if (Shapes.Count == 0 && Buffer.Count == 0)
-            return;
-
-        // Push last shape into buffer and remove it from final list, then re-draw canvas
-        int lastIndex = Shapes.Count - 1;
-        Buffer.Push(Shapes[lastIndex]);
-        Shapes.RemoveAt(lastIndex);
-
-        RedrawCanvas();
-    }
-
-    private void redoButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (Buffer.Count == 0)
-            return;
-        if (Shapes.Count == 0 && Buffer.Count == 0)
-            return;
-
-        // Pop the last shape from buffer and add it to final list, then re-draw canvas
-        Shapes.Add(Buffer.Pop());
-        RedrawCanvas();
-    }
-
-    private void RedrawCanvas()
-    {
-        drawingArea.Children.Clear();
-        Console.WriteLine(Shapes.Count);
-        foreach (var shape in Shapes)
-        {
-            var element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
-            drawingArea.Children.Add(element);
-        }
-
-        //control Point display ontop
-        //rework
-        if (IsEditMode && ChosenShapes.Count > 0)
-        {
-            ChosenShapes.ForEach(shape =>
-            {
-                PShape chosedShape = (PShape)shape;
-                drawingArea.Children.Add(chosedShape.ControlOutline());
-
-                //if only chose one shape
-                if (ChosenShapes.Count == 1)
-                {
-                    List<ControlPoint> ctrlPoints = chosedShape.GetControlPoints();
-                    this.CtrlPoint = ctrlPoints;
-                    ctrlPoints.ForEach(K =>
-                    {
-                        drawingArea.Children.Add(K.DrawPoint(chosedShape.RotateAngle, chosedShape.GetCenterPoint()));
-                    });
-                }
-            });
-        }
-    }
-
-    private void EditMode_Click(object sender, RoutedEventArgs e)
-    {
-        this.IsEditMode = !this.IsEditMode;
-        if (IsEditMode)
-            EditMode.Header = "Edit Mode";
-        else EditMode.Header = "Draw Mode";
-
-        if (!this.IsEditMode)
-            this.ChosenShapes.Clear();
-    }
-
-    private void Delete_Click(object sender, RoutedEventArgs e)
-    {
-        if (this.IsEditMode)
-        {
-
-            ChosenShapes.ForEach(k =>
-            {
-                Shapes.Remove(k);
-            });
-
-            ChosenShapes.Clear();
-            RedrawCanvas();
-        }
-    }
-
-    private void copyButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (this.IsEditMode)
-        {
-            ChosenShapes.ForEach(K =>
-            {
-                CopyBuffers.Add(K);
-            });
-        }
-    }
-
-    private void pasteButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (this.IsEditMode)
-        {
-            CopyBuffers.ForEach(K =>
-            {
-                PShape temp = (PShape)K;
-                Shapes.Add((IShape)temp.DeepCopy());
-            });
-            RedrawCanvas();
-        }
-
-    }
+    #endregion
 }

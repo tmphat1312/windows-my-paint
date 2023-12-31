@@ -11,7 +11,6 @@ public class Ellipse2D : PShape, IShape
     public string Name => "Ellipse";
     public string Icon => "Assets/Shapes/ellipse.png";
 
-
     public void HandleStart(double x, double y)
     {
         LeftTop.X = x;
@@ -49,9 +48,11 @@ public class Ellipse2D : PShape, IShape
         Canvas.SetLeft(ellipse, left);
         Canvas.SetTop(ellipse, top);
 
-        RotateTransform transform = new RotateTransform(RotateAngle);
-        transform.CenterX = width * 1.0 / 2;
-        transform.CenterY = height * 1.0 / 2;
+        RotateTransform transform = new(RotateAngle)
+        {
+            CenterX = width * 1.0 / 2,
+            CenterY = height * 1.0 / 2
+        };
 
         ellipse.RenderTransform = transform;
         return ellipse;
@@ -61,14 +62,16 @@ public class Ellipse2D : PShape, IShape
     {
         return new Ellipse2D();
     }
+
     override public PShape DeepCopy()
     {
-        Ellipse2D temp = new Ellipse2D();
-
-        temp.LeftTop = this.LeftTop.DeepCopy();
-        temp.RightBottom = this.RightBottom.DeepCopy();
-        temp.RotateAngle = RotateAngle;
-        temp.Thickness = this.Thickness;
+        Ellipse2D temp = new()
+        {
+            LeftTop = this.LeftTop.DeepCopy(),
+            RightBottom = this.RightBottom.DeepCopy(),
+            RotateAngle = RotateAngle,
+            Thickness = this.Thickness
+        };
 
         if (this.Brush != null)
             temp.Brush = this.Brush.Clone();

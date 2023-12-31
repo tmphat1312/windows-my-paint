@@ -24,6 +24,7 @@ public class Circle2D : PShape, IShape
 
         double width = Math.Abs(RightBottom.X - LeftTop.X);
         double height = Math.Abs(RightBottom.Y - LeftTop.Y);
+
         if (width < height)
         {
             if (RightBottom.Y < LeftTop.Y)
@@ -75,9 +76,11 @@ public class Circle2D : PShape, IShape
             Canvas.SetTop(circle, RightBottom.Y);
         }
 
-        RotateTransform transform = new RotateTransform(RotateAngle);
-        transform.CenterX = width * 1.0 / 2;
-        transform.CenterY = height * 1.0 / 2;
+        RotateTransform transform = new(RotateAngle)
+        {
+            CenterX = width * 1.0 / 2,
+            CenterY = height * 1.0 / 2
+        };
 
         circle.RenderTransform = transform;
 
@@ -91,12 +94,13 @@ public class Circle2D : PShape, IShape
 
     override public PShape DeepCopy()
     {
-        Circle2D temp = new Circle2D();
-
-        temp.LeftTop = this.LeftTop.DeepCopy();
-        temp.RightBottom = this.RightBottom.DeepCopy();
-        temp.RotateAngle = this.RotateAngle;
-        temp.Thickness = this.Thickness;
+        Circle2D temp = new()
+        {
+            LeftTop = this.LeftTop.DeepCopy(),
+            RightBottom = this.RightBottom.DeepCopy(),
+            RotateAngle = this.RotateAngle,
+            Thickness = this.Thickness
+        };
 
         if (this.Brush != null)
             temp.Brush = this.Brush.Clone();

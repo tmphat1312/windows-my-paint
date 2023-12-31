@@ -7,8 +7,6 @@
         xmlns:local="clr-namespace:Paint"
         mc:Ignorable="d"
         Title="My CroSoft Paint" 
-        Height="700" 
-        Width="1250" 
         Loaded="PaintWindow_Loaded">
 
     <!--Styles-->
@@ -42,31 +40,31 @@
             <Fluent:RibbonTabItem Header="Toolbox">
                 <!--File-->
                 <Fluent:RibbonGroupBox Header="File">
-                    <Fluent:Button Header="New" Name="createNewButton" Click="createNewButton_Click" ToolTip="Ctrl N">
+                    <Fluent:Button Header="New" Name="createNewButton" Click="CreateNewButton_Click" ToolTip="Ctrl N">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/add.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
                     
-                    <Fluent:Button Header="Open" Name="openFileButton" Click="openFileButton_Click" ToolTip="Ctrl O">
+                    <Fluent:Button Header="Open" Name="openFileButton" Click="OpenFileButton_Click" ToolTip="Ctrl O">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/open.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
                     
-                    <Fluent:Button Header="Export" Name="exportButton" Click="exportButton_Click" ToolTip="Ctrl E">
+                    <Fluent:Button Header="Export" Name="exportButton" Click="ExportButton_Click" ToolTip="Ctrl E">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/export.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Header="Save" Name="saveFileButton" Click="saveFileButton_Click" ToolTip="Ctrl S">
+                    <Fluent:Button Header="Save" Name="saveFileButton" Click="SaveFileButton_Click" ToolTip="Ctrl S">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/save.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Header="Photo" Name="importButton" Click="importButton_Click" ToolTip="Ctrl P">
+                    <Fluent:Button Header="Photo" Name="importButton" Click="AddPictureButton_Click" ToolTip="Ctrl P">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/photo.png"></Image>
                         </Fluent:Button.LargeIcon>
@@ -75,13 +73,13 @@
 
                 <!--Mode-->
                 <Fluent:RibbonGroupBox Header="Modes">
-                    <Fluent:Button Name="DrawingMode" Header="Drawing" Click="EditMode_Click" Visibility="Collapsed">
+                    <Fluent:Button Name="DrawingModeButton" Header="Draw" Click="ChangeMode_Click" Visibility="Collapsed">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/drawing-mode.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Name="EditMode" Header="Editing" Click="EditMode_Click">
+                    <Fluent:Button Name="EditModeButton" Header="Edit" Click="ChangeMode_Click">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/edit-mode.png"></Image>
                         </Fluent:Button.LargeIcon>
@@ -90,13 +88,13 @@
 
                 <!--Tools-->
                 <Fluent:RibbonGroupBox Header="Tools">
-                    <Fluent:Button Name="undoButton" Header="Undo" Click="undoButton_Click" ToolTip="Ctrl Z">
+                    <Fluent:Button Name="undoButton" Header="Undo" Click="UndoButton_Click" ToolTip="Ctrl Z">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/undo.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Name="redoButton" Header="Redo" Click="redoButton_Click" ToolTip="Ctrl Y">
+                    <Fluent:Button Name="redoButton" Header="Redo" Click="RedoButton_Click" ToolTip="Ctrl Y">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/redo.png"></Image>
                         </Fluent:Button.LargeIcon>
@@ -111,13 +109,13 @@
                 
                 <!--Clipboard-->
                 <Fluent:RibbonGroupBox Header="Clipboard">
-                    <Fluent:Button Name="pasteButton" Header="Paste" Click="pasteButton_Click" ToolTip="Ctrl V">
+                    <Fluent:Button Name="pasteButton" Header="Paste" Click="PasteButton_Click" ToolTip="Ctrl V">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/paste.png"></Image>
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Name="copyButton" Header="Copy" Click="copyButton_Click" ToolTip="Ctrl C">
+                    <Fluent:Button Name="copyButton" Header="Copy" Click="CopyButton_Click" ToolTip="Ctrl C">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/copy.png" ></Image>
                         </Fluent:Button.LargeIcon>
@@ -156,57 +154,34 @@
 
                 <!--Size-->
                 <Fluent:RibbonGroupBox Header="Style" VerticalAlignment="Center">
-                    
                     <!--Thickness-->
                     <StackPanel Margin="4,4,4,0" HorizontalAlignment="Center">
                         <TextBlock Text="Thickness" HorizontalAlignment="Center" />
-                        
-                        <Fluent:ComboBox x:Name="sizeComboBox" Height="20" IsEditable="False" HorizontalAlignment="Center"
-                                             SelectionChanged="sizeComboBox_SelectionChanged" Margin="0,8,0,8">
-                            <ComboBoxItem IsSelected="True">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="1px"/>
-                                    <TextBlock Text=" -------" FontWeight="Light"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="2px" />
-                                    <TextBlock Text=" -------" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="3px"/>
-                                    <TextBlock Text=" -------" FontWeight="Bold"/>
-                                </StackPanel>
-                            </ComboBoxItem>
-                            <ComboBoxItem>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="5px"/>
-                                    <TextBlock Text=" -------" FontWeight="ExtraBold"/>
-                                </StackPanel>
-                            </ComboBoxItem>
+                        <Fluent:ComboBox x:Name="SizeComboBox" Height="20" IsEditable="False" HorizontalAlignment="Center"
+                                             SelectionChanged="SizeComboBox_SelectionChanged" SelectedIndex="0" Margin="0,8,0,8">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:ThicknessOption}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Label}"/>
+                                        <TextBlock Text=" -------" FontWeight="{Binding FontWeight}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </Fluent:ComboBox>
                     </StackPanel>
                     
                     <!--Dash-->
                     <StackPanel Orientation="Vertical" Margin="4,4,4,0" HorizontalAlignment="Center">
                         <TextBlock Text="Dash" HorizontalAlignment="Center" />
-
-                        <Fluent:ComboBox x:Name="dashComboBox" Height="20" Width="80" IsEditable="False" HorizontalAlignment="Center"
-                                             SelectionChanged="dashComboBox_SelectionChanged" Margin="0,8,0,8">
-                            <ComboBoxItem IsSelected="True">
-                                <TextBlock Text="__________" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </ComboBoxItem>
-                            
-                            <ComboBoxItem>
-                                <TextBlock Text="............" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </ComboBoxItem>
-
-                            <ComboBoxItem>
-                                <TextBlock Text="_ _ _ _ _ _ " FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </ComboBoxItem>
+                        <Fluent:ComboBox x:Name="DashComboBox" Height="20" Width="80" IsEditable="False" HorizontalAlignment="Center"
+                                             SelectionChanged="DashComboBox_SelectionChanged" SelectedIndex="0" Margin="0,8,0,8">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:DashOption}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock FontSize="16" Text="{Binding Label}" FontWeight="ExtraBlack"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
                         </Fluent:ComboBox>
                     </StackPanel>
                 </Fluent:RibbonGroupBox>
@@ -239,25 +214,23 @@
         
         <Fluent:StatusBar DockPanel.Dock="Bottom">
             <Fluent:StatusBarItem 
-                Title="Font size"
-                Value="12px"
                 Margin="20,0,0,0"
+                Title="Current mode"
                 HorizontalAlignment="Left">
                 <TextBlock>
-                    <Run Text="Font size: "/>
-                    <Run Text="12px" />
+                    <Run Text="Current mode: "/>
+                    <Run Text="Drawing" x:Name="CurrentModeText" />
                 </TextBlock>
             </Fluent:StatusBarItem>
 
             <Separator HorizontalAlignment="Left" />
 
             <Fluent:StatusBarItem 
-                Title="Current mode"
-                Value="Drawing"
+                Title="Current shape"
                 HorizontalAlignment="Left">
                 <TextBlock>
-                    <Run Text="Current mode: "/>
-                    <Run Text="Drawing" />
+                    <Run Text="Current shape: "/>
+                    <Run Text="Circle" x:Name="CurrentShapeText" />
                 </TextBlock>
             </Fluent:StatusBarItem>
 
@@ -271,8 +244,9 @@
         </Fluent:StatusBar>
 
         <!--Drawing area-->
-        <Grid>
+        <Grid Margin="4" Width="960" Height="540">
             <Border 
+                x:Name="DrawingHandlerArea"
                 Background="Transparent" 
                 IsHitTestVisible="True" 
                 MouseDown="drawingArea_MouseDown" 
@@ -281,7 +255,7 @@
                 MouseEnter="drawingArea_MouseEnter" 
                 MouseLeave="drawingArea_MouseLeave"/>
             <Canvas 
-                Name="drawingArea" 
+                Name="DrawingArea" 
                 IsHitTestVisible="False" 
                 ClipToBounds="True" 
                 Background="White" />
