@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paint", "Paint\Paint.csproj", "{3B22B15A-B80E-41B4-931E-67812667D0F0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Contract", "Contract\Contract.csproj", "{524B2779-2E1B-432B-B18C-E0B3AF0B4496}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CircleShape", "CircleShape\CircleShape.csproj", "{31430F46-EB0B-4B11-AB99-970021234AD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EllipseShape", "EllipseShape\EllipseShape.csproj", "{DBFF9965-B1A7-4A73-BA4C-1620668B4BFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineShape", "LineShape\LineShape.csproj", "{1E696D2E-19B1-41F5-B146-003C86317A3B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RectangleShape", "RectangleShape\RectangleShape.csproj", "{83D6B6E2-D458-4060-9466-4DC7F0EBCA54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SquareShape", "SquareShape\SquareShape.csproj", "{7FBEF593-0844-40E9-B40C-206FDDE905AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B22B15A-B80E-41B4-931E-67812667D0F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B22B15A-B80E-41B4-931E-67812667D0F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B22B15A-B80E-41B4-931E-67812667D0F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B22B15A-B80E-41B4-931E-67812667D0F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{524B2779-2E1B-432B-B18C-E0B3AF0B4496}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{524B2779-2E1B-432B-B18C-E0B3AF0B4496}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{524B2779-2E1B-432B-B18C-E0B3AF0B4496}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{524B2779-2E1B-432B-B18C-E0B3AF0B4496}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31430F46-EB0B-4B11-AB99-970021234AD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31430F46-EB0B-4B11-AB99-970021234AD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31430F46-EB0B-4B11-AB99-970021234AD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31430F46-EB0B-4B11-AB99-970021234AD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBFF9965-B1A7-4A73-BA4C-1620668B4BFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBFF9965-B1A7-4A73-BA4C-1620668B4BFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBFF9965-B1A7-4A73-BA4C-1620668B4BFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBFF9965-B1A7-4A73-BA4C-1620668B4BFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E696D2E-19B1-41F5-B146-003C86317A3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E696D2E-19B1-41F5-B146-003C86317A3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E696D2E-19B1-41F5-B146-003C86317A3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E696D2E-19B1-41F5-B146-003C86317A3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83D6B6E2-D458-4060-9466-4DC7F0EBCA54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83D6B6E2-D458-4060-9466-4DC7F0EBCA54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83D6B6E2-D458-4060-9466-4DC7F0EBCA54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83D6B6E2-D458-4060-9466-4DC7F0EBCA54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FBEF593-0844-40E9-B40C-206FDDE905AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FBEF593-0844-40E9-B40C-206FDDE905AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FBEF593-0844-40E9-B40C-206FDDE905AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FBEF593-0844-40E9-B40C-206FDDE905AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2829C3CA-5494-4F4A-8883-2C678733B809}
+	EndGlobalSection
+EndGlobal

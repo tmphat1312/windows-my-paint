@@ -63,7 +63,7 @@ public partial class MainWindow
                 return;
             }
 
-            var fis = new DirectoryInfo(folder).GetFiles("*2D.dll");
+            var fis = new DirectoryInfo(folder).GetFiles("*Shape.dll");
 
             foreach (var f in fis)
             {
