@@ -6,6 +6,7 @@
         xmlns:Fluent="clr-namespace:Fluent;assembly=Fluent"
         xmlns:local="clr-namespace:Paint"
         mc:Ignorable="d"
+        Icon="Assets/app-icon.png"
         Title="My CroSoft Paint" 
         Loaded="PaintWindow_Loaded">
 
