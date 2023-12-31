@@ -115,7 +115,7 @@
                         </Fluent:Button.LargeIcon>
                     </Fluent:Button>
 
-                    <Fluent:Button Name="CutButton" Header="Cut" Click="CutButton_Click" ToolTip="Ctrl C">
+                    <Fluent:Button Name="CutButton" Header="Cut" Click="CutButton_Click" ToolTip="Ctrl X">
                         <Fluent:Button.LargeIcon>
                             <Image Source="Assets/Icons/cut.png" ></Image>
                         </Fluent:Button.LargeIcon>
