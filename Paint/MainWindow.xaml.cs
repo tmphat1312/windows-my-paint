@@ -12,6 +12,7 @@ namespace Paint;
 
 public partial class MainWindow : Fluent.RibbonWindow
 {
+    private readonly ShapeFactory _factory = ShapeFactory.Instance;
     public MainViewModel ViewModel { get; set; } = new MainViewModel();
 
     public MainWindow()
@@ -49,12 +50,11 @@ public partial class MainWindow : Fluent.RibbonWindow
     #endregion
 
     #region Canvas drawing variables
-    private readonly ShapeFactory _factory = ShapeFactory.Instance;
     public List<IShape> AllShapes = [];
     public string BackgroundImagePath = string.Empty;
     #endregion
 
-    private void RibbonWindow_Loaded(object sender, RoutedEventArgs e)
+    private void PaintWindow_Loaded(object sender, RoutedEventArgs e)
     {
         AllShapes = (List<IShape>)_factory.Shapes;
 
@@ -75,25 +75,14 @@ public partial class MainWindow : Fluent.RibbonWindow
         KeyDown += RegisterKeyBoardShortCuts;
     }
 
-    // TODO: Add shortcuts for commands
-    private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
+    #region Update Color Brush
+    private void SolidColorsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        //can remove
-        switch (e.Key)
-        {
-            case Key.C:
-                {
-                    if (Keyboard.IsKeyDown(Key.X))
-                        Console.WriteLine("AAA");
-                    else
-                        Console.WriteLine("A");
-                    break;
-                }
-        }
-        return;
+        var selectedColor = SolidColorsListView.SelectedItem as SolidColorBrush;
+        CurrentColorBrush = selectedColor!;
     }
 
-    private void editColorButton_Click(object sender, RoutedEventArgs e)
+    private void EditColorButton_Click(object sender, RoutedEventArgs e)
     {
         using System.Windows.Forms.ColorDialog colorPicker = new();
 
@@ -102,6 +91,19 @@ public partial class MainWindow : Fluent.RibbonWindow
             CurrentColorBrush = new SolidColorBrush(Color.FromRgb(colorPicker.Color.R, colorPicker.Color.G, colorPicker.Color.B));
         }
     }
+    #endregion
+
+    // TODO: Add more shortcuts for commands
+    private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
+    {
+        // Ctrl + Z == Undo
+        if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.Z))
+        {
+            undoButton_Click(sender, e);
+        }
+    }
+
+
 
     private void createNewButton_Click(object sender, RoutedEventArgs e)
     {
@@ -770,60 +772,6 @@ public partial class MainWindow : Fluent.RibbonWindow
         }
     }
 
-    //#region color button
-
-    //private void btnBasicBlack_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-    //}
-
-    //private void btnBasicGray_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(192, 192, 192));
-    //}
-
-    //private void btnBasicRed_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-    //}
-
-    //private void btnBasicOrange_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
-    //}
-
-    //private void btnBasicBlue_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 0, 255));
-    //}
-
-    //private void btnBasicGreen_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
-    //}
-
-    //private void btnBasicPurple_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(191, 64, 191));
-    //}
-
-    //private void btnBasicPink_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 182, 193));
-    //}
-
-    //private void btnBasicYellow_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 255, 0));
-    //}
-
-    //private void btnBasicBrown_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(160, 82, 45));
-    //}
-
-    //#endregion
-
     private void ShapeListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (this.AllShapes.Count == 0)
@@ -1028,4 +976,5 @@ public partial class MainWindow : Fluent.RibbonWindow
         }
 
     }
+
 }

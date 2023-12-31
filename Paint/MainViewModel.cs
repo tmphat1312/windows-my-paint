@@ -20,5 +20,10 @@ public class MainViewModel
             Brushes.Pink,
             Brushes.Brown
         ];
+
+        if (Colors.Count == 0)
+        {
+            throw new Exception("Colors is empty");
+        }
     }
 }
