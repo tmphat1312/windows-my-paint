@@ -5,8 +5,12 @@ using System.Windows.Shapes;
 
 namespace Contract;
 
-public class CShape
+public class PShape
 {
+    public DoubleCollection? StrokeDash { get; set; } = null;
+    public SolidColorBrush Brush { get; set; } = Brushes.Black;
+    public int Thickness { get; set; } = 1;
+
     public Point2D LeftTop { get; set; } = new();
     public Point2D RightBottom { get; set; } = new();
     public double RotateAngle { get; set; } = 0;
@@ -124,9 +128,9 @@ public class CShape
         return rect;
     }
 
-    virtual public CShape DeepCopy()
+    virtual public PShape DeepCopy()
     {
-        return new CShape()
+        return new PShape()
         {
             LeftTop = this.LeftTop,
             RightBottom = this.RightBottom,

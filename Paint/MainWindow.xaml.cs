@@ -75,6 +75,18 @@ public partial class MainWindow : Fluent.RibbonWindow
         KeyDown += RegisterKeyBoardShortCuts;
     }
 
+    // TODO: Add more shortcuts for commands
+    #region Command shortcuts
+    private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
+    {
+        // Ctrl + Z == Undo
+        if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.Z))
+        {
+            undoButton_Click(sender, e);
+        }
+    }
+    #endregion
+
     #region Update Color Brush
     private void SolidColorsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -92,17 +104,6 @@ public partial class MainWindow : Fluent.RibbonWindow
         }
     }
     #endregion
-
-    // TODO: Add more shortcuts for commands
-    private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
-    {
-        // Ctrl + Z == Undo
-        if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.Z))
-        {
-            undoButton_Click(sender, e);
-        }
-    }
-
 
 
     private void createNewButton_Click(object sender, RoutedEventArgs e)
@@ -342,7 +343,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         bool isChange = false;
         if (ChosenShapes.Count == 1)
         {
-            CShape shape1 = (CShape)ChosenShapes[0];
+            PShape shape1 = (PShape)ChosenShapes[0];
             Point currentPos1 = e.GetPosition(drawingArea);
             for (int i = 0; i < CtrlPoint.Count; i++)
             {
@@ -413,7 +414,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 
                 ChosenShapes.ForEach(E =>
                 {
-                    CShape K = (CShape)E;
+                    PShape K = (PShape)E;
 
                     K.LeftTop.X = K.LeftTop.X + dx;
                     K.LeftTop.Y = K.LeftTop.Y + dy;
@@ -432,7 +433,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 					*/
 
                 //controlPoint detect part
-                CShape shape = (CShape)ChosenShapes[0];
+                PShape shape = (PShape)ChosenShapes[0];
                 CtrlPoint.ForEach(ctrlPoint =>
                 {
                     List<Cord> edges = new List<Cord>()
@@ -663,7 +664,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             Point currentPos = e.GetPosition(drawingArea);
             for (int i = this.Shapes.Count - 1; i >= 0; i--)
             {
-                CShape temp = (CShape)Shapes[i];
+                PShape temp = (PShape)Shapes[i];
                 if (temp.IsHovering(currentPos.X, currentPos.Y))
                 {
                     if (Keyboard.IsKeyDown(Key.LeftCtrl))
@@ -909,7 +910,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         {
             ChosenShapes.ForEach(shape =>
             {
-                CShape chosedShape = (CShape)shape;
+                PShape chosedShape = (PShape)shape;
                 drawingArea.Children.Add(chosedShape.ControlOutline());
 
                 //if only chose one shape
@@ -969,12 +970,11 @@ public partial class MainWindow : Fluent.RibbonWindow
         {
             CopyBuffers.ForEach(K =>
             {
-                CShape temp = (CShape)K;
+                PShape temp = (PShape)K;
                 Shapes.Add((IShape)temp.DeepCopy());
             });
             RedrawCanvas();
         }
 
     }
-
 }

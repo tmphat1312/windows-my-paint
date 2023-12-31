@@ -5,11 +5,12 @@ namespace Contract;
 
 public interface IShape
 {
+    public DoubleCollection? StrokeDash { get; set; }
+    public SolidColorBrush Brush { get; set; }
+    public int Thickness { get; set; }
+
     string Name { get; }
     string Icon { get; }
-    SolidColorBrush Brush { get; set; }
-    DoubleCollection StrokeDash { get; set; }
-    int Thickness { get; set; }
 
     void HandleStart(double x, double y);
     void HandleEnd(double x, double y);

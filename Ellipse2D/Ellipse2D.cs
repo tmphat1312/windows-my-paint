@@ -6,12 +6,8 @@ using System.Windows.Shapes;
 
 namespace Shapes;
 
-public class Ellipse2D : CShape, IShape
+public class Ellipse2D : PShape, IShape
 {
-    public int Thickness { get; set; }
-    public DoubleCollection StrokeDash { get; set; }
-
-    public SolidColorBrush Brush { get; set; }
     public string Name => "Ellipse";
     public string Icon => "Assets/Shapes/ellipse.png";
 
@@ -65,7 +61,7 @@ public class Ellipse2D : CShape, IShape
     {
         return new Ellipse2D();
     }
-    override public CShape DeepCopy()
+    override public PShape DeepCopy()
     {
         Ellipse2D temp = new Ellipse2D();
 

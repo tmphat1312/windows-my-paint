@@ -5,15 +5,10 @@ using System.Windows.Shapes;
 
 namespace Shapes
 {
-    public class Line2D : CShape, IShape
+    public class Line2D : PShape, IShape
     {
-        public DoubleCollection StrokeDash { get; set; }
-
-        public SolidColorBrush Brush { get; set; }
         public string Name => "Line";
         public string Icon => "Assets/Shapes/line.png";
-
-        public int Thickness { get; set; }
 
         public void HandleStart(double x, double y)
         {
@@ -110,7 +105,7 @@ namespace Shapes
         {
             return new Line2D();
         }
-        override public CShape DeepCopy()
+        override public PShape DeepCopy()
         {
             Line2D temp = new Line2D();
 
