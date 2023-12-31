@@ -58,3 +58,13 @@ public class OneSidePoint : ControlPoint
     }
 
 }
+
+public class EndPoint : ControlPoint
+{
+    public override string Type => "end";
+    public string Edge { get; set; }
+    public override string getEdge(double angle)
+    {
+        return Edge;
+    }
+}

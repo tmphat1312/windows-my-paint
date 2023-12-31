@@ -1,5 +1,7 @@
 using Contract;
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -43,64 +45,74 @@ public class LineShape : PShape, IShape
     {
         List<ControlPoint> controlPoints = [];
 
-        ControlPoint diagPointTopLeft = new DiagPoint
+        ControlPoint leftTopEndPoint = new EndPoint()
         {
-            Point = LeftTop
+            Point = LeftTop,
+            CentrePoint = this.GetCenterPoint(),
+            Edge = "leftTop"
         };
 
-        ControlPoint diagPointBottomLeft = new DiagPoint
+        ControlPoint rightBottomEndPoint = new EndPoint()
         {
-            Point = new Point2D() { X = LeftTop.X, Y = RightBottom.Y }
+            Point = RightBottom,
+            CentrePoint = this.GetCenterPoint(),
+            Edge = "rightBottom"
         };
 
-        ControlPoint diagPointTopRight = new DiagPoint
-        {
-            Point = new Point2D() { X = RightBottom.X, Y = LeftTop.Y }
-        };
+        ControlPoint moveControlPoint = new ControlPoint();
+        moveControlPoint.Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = (LeftTop.Y + RightBottom.Y) / 2 };
+        moveControlPoint.Type = "move";
+        moveControlPoint.CentrePoint = this.GetCenterPoint();
 
-        ControlPoint diagPointBottomRight = new DiagPoint
-        {
-            Point = RightBottom
-        };
-
-        ControlPoint diagPointRight = new OneSidePoint
-        {
-            Point = new Point2D() { X = RightBottom.X, Y = (RightBottom.Y + LeftTop.Y) / 2 }
-        };
-
-        ControlPoint diagPointLeft = new OneSidePoint
-        {
-            Point = new Point2D() { X = LeftTop.X, Y = (RightBottom.Y + LeftTop.Y) / 2 }
-        };
-
-
-        ControlPoint diagPointTop = new OneSidePoint
-        {
-            Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = LeftTop.Y }
-        };
-
-        ControlPoint diagPointBottom = new OneSidePoint
-        {
-            Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = RightBottom.Y }
-        };
-
-        ControlPoint moveControlPoint = new()
-        {
-            Point = new Point2D() { X = (LeftTop.X + RightBottom.X) / 2, Y = (LeftTop.Y + RightBottom.Y) / 2 },
-            Type = "move"
-        };
-
-        controlPoints.Add(diagPointTopLeft);
-        controlPoints.Add(diagPointTopRight);
-        controlPoints.Add(diagPointBottomLeft);
-        controlPoints.Add(diagPointBottomRight);
-        controlPoints.Add(diagPointRight);
-        controlPoints.Add(diagPointLeft);
-        controlPoints.Add(diagPointBottom);
-        controlPoints.Add(diagPointTop);
+        controlPoints.Add(leftTopEndPoint);
+        controlPoints.Add(rightBottomEndPoint);
         controlPoints.Add(moveControlPoint);
 
+
         return controlPoints;
+    }
+
+    override public UIElement ControlOutline()
+    {
+        var left = Math.Min(RightBottom.X, LeftTop.X);
+        var top = Math.Min(RightBottom.Y, LeftTop.Y);
+
+        var right = Math.Max(RightBottom.X, LeftTop.X);
+        var bottom = Math.Max(RightBottom.Y, LeftTop.Y);
+
+        var width = right - left;
+        var height = bottom - top;
+
+        var rect = new Rectangle()
+        {
+            Width = width,
+            Height = height,
+            StrokeThickness = 2,
+            Stroke = Brushes.Black,
+            StrokeDashArray = { 4, 2, 4 }
+        };
+
+        var line = new Line()
+        {
+            X1 = LeftTop.X,
+            Y1 = LeftTop.Y,
+            X2 = RightBottom.X,
+            Y2 = RightBottom.Y,
+            StrokeThickness = 2,
+            Stroke = Brushes.Black,
+            StrokeDashArray = { 4, 2, 4 }
+        };
+
+        //Canvas.SetLeft(line, left);
+        //Canvas.SetTop(line, top);
+
+        RotateTransform transform = new RotateTransform(RotateAngle);
+        transform.CenterX = width * 1.0 / 2;
+        transform.CenterY = height * 1.0 / 2;
+
+        line.RenderTransform = transform;
+
+        return line;
     }
 
     public IShape Clone()
