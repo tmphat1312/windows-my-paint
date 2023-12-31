@@ -65,30 +65,6 @@ public class ControlPoint
         else
             index = 0;
 
-        //double rot = angle;
-
-        //if (rot > 0)
-        //    while (true)
-        //    {
-        //        rot -= 90;
-        //        if (rot < 0)
-        //            break;
-        //        index++;
-
-        //        if (index == 4)
-        //            index = 0;
-        //    }
-        //else
-        //    while (true)
-        //    {
-        //        rot += 90;
-        //        if (rot > 0)
-        //            break;
-        //        index--;
-        //        if (index == -1)
-        //            index = 3;
-        //    };
-
         return edge[index];
     }
 

@@ -644,24 +644,6 @@ public partial class MainWindow : Fluent.RibbonWindow
 
                 CtrlPoint.ForEach(ctrlPoint =>
                 {
-                    List<Cord> edges =
-                        [
-                            new Cord(shape.LeftTop),
-                            new CordY(shape.LeftTop),
-                            new Cord(shape.RightBottom),
-                            new CordY(shape.RightBottom)
-                        ];
-
-                    List<int> rotate0 = [0, 1, 2, 3];
-                    List<int> rotate90 = [3, 0, 1, 2];
-                    List<int> rotate180 = [2, 3, 0, 1];
-                    List<int> rotate270 = [1, 2, 3, 0];
-
-                    List<List<int>> rotateList = [rotate0, rotate90, rotate180, rotate270];
-
-                    double rot = shape.RotateAngle;
-                    int index = 0;
-
                     if (ctrlPoint.IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape.RotateAngle))
                     {
                         switch (ctrlPoint.Type)
@@ -689,26 +671,6 @@ public partial class MainWindow : Fluent.RibbonWindow
 
                             case "diag":
                                 {
-                                    Point2D handledXY = ctrlPoint.Handle(shape.RotateAngle, dx, dy);
-
-                                    switch (index)
-                                    {
-                                        case 1:
-                                            handledXY.X *= -1;
-                                            break;
-                                        case 2:
-                                            {
-                                                handledXY.Y *= -1;
-                                                handledXY.X *= -1;
-                                                break;
-                                            }
-                                        case 3:
-                                            {
-                                                handledXY.Y *= -1;
-                                                break;
-                                            }
-                                    }
-
                                     var centerPoint = shape.GetCenterPoint();
 
                                     switch (ctrlPoint.getEdge(shape.RotateAngle))
@@ -894,6 +856,20 @@ public partial class MainWindow : Fluent.RibbonWindow
 
                                                 break;
                                             }
+                                    }
+                                    break;
+                                }
+                            case "end":
+                                {
+                                    if (ctrlPoint.Point.X == shape.LeftTop.X && ctrlPoint.Point.Y == shape.LeftTop.Y)
+                                    {
+                                        shape.LeftTop.X = currentPos.X;
+                                        shape.LeftTop.Y = currentPos.Y;
+                                    }
+                                    else if (ctrlPoint.Point.X == shape.RightBottom.X && ctrlPoint.Point.Y == shape.RightBottom.Y)
+                                    {
+                                        shape.RightBottom.X = currentPos.X;
+                                        shape.RightBottom.Y = currentPos.Y;
                                     }
                                     break;
                                 }
