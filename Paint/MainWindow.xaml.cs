@@ -541,7 +541,8 @@ public partial class MainWindow : Fluent.RibbonWindow
             PShape chosen = (PShape)SelectedShapes[0];
             if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
             {
-                for (int i = 0; i < CtrlPoint.Count; i++)
+                PShape chosen = (PShape)ChosenShapes[0];
+                if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
                 {
                     if (CtrlPoint[i].IsHovering(chosen.RotateAngle, currentPos.X, currentPos.Y))
                     {
@@ -661,31 +662,6 @@ public partial class MainWindow : Fluent.RibbonWindow
                     double rot = shape.RotateAngle;
                     int index = 0;
 
-                    if (rot > 0)
-                        while (true)
-                        {
-                            rot -= 90;
-                            if (rot < 0)
-                                break;
-                            index++;
-
-                            if (index == 4)
-                                index = 0;
-                        }
-                    else
-                        while (true)
-                        {
-                            rot += 90;
-                            if (rot > 0)
-                                break;
-                            index--;
-                            if (index == -1)
-                                index = 3;
-                        };
-
-                    //Trace.WriteLine($"Type: ${SelectedCtrlPointType}");
-                    //Trace.WriteLine($"Edge: ${SelectedCtrlPointEdge}");
-
                     if (ctrlPoint.IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape.RotateAngle))
                     {
                         switch (ctrlPoint.Type)
@@ -733,51 +709,189 @@ public partial class MainWindow : Fluent.RibbonWindow
                                             }
                                     }
 
+                                    var centerPoint = shape.GetCenterPoint();
 
                                     switch (ctrlPoint.getEdge(shape.RotateAngle))
                                     {
                                         case "topleft":
                                             {
-                                                edges[rotateList[index][0]].SetCord(handledXY.X);
-                                                edges[rotateList[index][1]].SetCord(handledXY.Y);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.LeftTop.X = newPoint.X;
+                                                shape.LeftTop.Y = newPoint.Y;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                         case "topright":
                                             {
-                                                edges[rotateList[index][2]].SetCord(handledXY.X);
-                                                edges[rotateList[index][1]].SetCord(handledXY.Y);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.RightBottom.X = newPoint.X;
+                                                shape.LeftTop.Y = newPoint.Y;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                         case "bottomright":
                                             {
-                                                edges[rotateList[index][2]].SetCord(handledXY.X);
-                                                edges[rotateList[index][3]].SetCord(handledXY.Y);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.RightBottom.X = newPoint.X;
+                                                shape.RightBottom.Y = newPoint.Y;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                         case "bottomleft":
                                             {
-                                                edges[rotateList[index][0]].SetCord(handledXY.X);
-                                                edges[rotateList[index][3]].SetCord(handledXY.Y);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.LeftTop.X = newPoint.X;
+                                                shape.RightBottom.Y = newPoint.Y;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                         case "right":
                                             {
-                                                edges[rotateList[index][2]].SetCord(handledXY.X);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.RightBottom.X = newPoint.X;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                         case "left":
                                             {
-                                                edges[rotateList[index][0]].SetCord(handledXY.X);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.LeftTop.X = newPoint.X;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
+
                                                 break;
                                             }
                                         case "top":
                                             {
-                                                edges[rotateList[index][3]].SetCord(-handledXY.Y);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.LeftTop.Y = newPoint.Y;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                         case "bottom":
                                             {
-                                                edges[rotateList[index][3]].SetCord(handledXY.Y);
+                                                var vector = new Vector2((float)(currentPos.X - centerPoint.X), (float)(currentPos.Y - centerPoint.Y));
+                                                float a = Util.GetAlphaAngleRadian(shape.RotateAngle);
+                                                float cosa = (float)Math.Cos(a);
+                                                float sina = (float)Math.Sin(a);
+                                                Point2D newPoint = new Point2D((vector.X * cosa + vector.Y * sina) + centerPoint.X, (-vector.X * sina + vector.Y * cosa) + centerPoint.Y);
+
+                                                var oldCenterPoint = shape.GetCenterPoint();
+
+                                                shape.RightBottom.Y = newPoint.Y;
+
+                                                var newCenterPoint = shape.GetCenterPoint();
+                                                (double txx, double tyy) = Util.GetCenterPointTranslation(oldCenterPoint, newCenterPoint, shape);
+
+                                                shape.LeftTop.X += txx;
+                                                shape.LeftTop.Y += tyy;
+                                                shape.RightBottom.X += txx;
+                                                shape.RightBottom.Y += tyy;
+
                                                 break;
                                             }
                                     }

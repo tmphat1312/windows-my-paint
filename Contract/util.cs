@@ -1,4 +1,8 @@
-﻿namespace Contract;
+﻿using System.Windows;
+using System.Windows.Media;
+using System.Windows.Shapes;
+
+namespace Contract;
 
 public class Util
 {
@@ -8,6 +12,32 @@ public class Util
             return x < x1 && x > x2;
         else
             return x < x2 && x > x1;
+    }
+    public static float GetAlphaAngleRadian(double RotateAngle)
+    {
+        float a;
+        if (RotateAngle >= 0 && RotateAngle < 180) { a = (float)(RotateAngle / (180 / Math.PI)); }
+        else
+        {
+            a = (float)((RotateAngle - 360) / (180 / Math.PI));
+        }
+
+        a %= (float)(2 * Math.PI);
+
+        return a;
+    }
+
+    public static Tuple<double, double> GetCenterPointTranslation(Point2D oldCenterPoint, Point2D newCenterPoint, PShape shape)
+    {
+        var ir = new RotateTransform(shape.RotateAngle, oldCenterPoint.X, oldCenterPoint.Y);
+        var fr = new RotateTransform(shape.RotateAngle, newCenterPoint.X, newCenterPoint.Y);
+        var ip = ir.Transform(new Point(shape.LeftTop.X, shape.LeftTop.Y));
+        var fp = fr.Transform(new Point(shape.LeftTop.X, shape.LeftTop.Y));
+
+        var txx = ip.X - fp.X;
+        var tyy = ip.Y - fp.Y;
+
+        return new Tuple<double, double>(txx, tyy);
     }
 }
 

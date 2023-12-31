@@ -21,6 +21,18 @@ public class Point2D : IShape
     //    return false;
     //}
 
+    public Point2D()
+    {
+        X = 0;
+        Y = 0;
+    }
+
+    public Point2D(double x, double y)
+    {
+        X = x;
+        Y = y;
+    }
+
     public void HandleStart(double x, double y)
     {
         X = x;
