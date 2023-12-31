@@ -1,6 +1,5 @@
 ﻿using Contract;
 using Newtonsoft.Json;
-using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Text;
@@ -31,18 +30,18 @@ public partial class MainWindow : Fluent.RibbonWindow
     #endregion
 
     #region Shape properties
+    public string CurrentShapeName { get; set; } = string.Empty;
     private static int CurrentThickness = 1;
     private static SolidColorBrush CurrentColorBrush = new(Colors.Black);
     private static DoubleCollection? CurrentDash = null;
+    public IShape CurrentDrawingShape { get; set; }
     #endregion
 
     #region Memory variables
     public List<IShape> Shapes { get; set; } = [];
     public Stack<IShape> Buffer { get; set; } = new Stack<IShape>();
-    public IShape? Preview { get; set; } = null;
-    public string SelectedShapeName { get; set; } = string.Empty;
     public List<IShape> CopyBuffers { get; set; } = [];
-    public List<IShape> ChosenShapes { get; set; } = [];
+    public List<IShape> SelectedShapes { get; set; } = [];
     #endregion
 
     #region Variables for edit mode
@@ -74,19 +73,27 @@ public partial class MainWindow : Fluent.RibbonWindow
         ShapeListView.ItemsSource = AllShapes;
         SizeComboBox.ItemsSource = ViewModel.ThicknessOptions;
         DashComboBox.ItemsSource = ViewModel.DashOptions;
-        UpdateSelectedShape(AllShapes.First());
+        UpdateCurrentDrawingShape(AllShapes.First());
         UpdateModeUI();
         #endregion
 
         KeyDown += RegisterKeyBoardShortCuts;
+        MouseDown += RegisterMouseShortCuts;
     }
 
     #region Utilities methods
-    private void UpdateSelectedShape(IShape selectedShape)
+    private void UpdateCurrentDrawingShape(IShape? selectedShape = null)
     {
-        Preview = selectedShape;
-        SelectedShapeName = selectedShape.Name;
-        CurrentShapeText.Text = selectedShape.Name;
+        if (selectedShape is not null)
+        {
+            CurrentShapeName = selectedShape.Name;
+            CurrentShapeText.Text = selectedShape.Name;
+            CurrentDrawingShape = selectedShape;
+        }
+
+        CurrentDrawingShape.Brush = CurrentColorBrush;
+        CurrentDrawingShape.Thickness = CurrentThickness;
+        CurrentDrawingShape.StrokeDash = CurrentDash;
     }
 
     private void UpdateModeUI()
@@ -118,14 +125,14 @@ public partial class MainWindow : Fluent.RibbonWindow
             DrawingArea.Children.Add(element);
         }
 
-        if (IsEditMode && ChosenShapes.Count > 0)
+        if (IsEditMode && SelectedShapes.Count > 0)
         {
-            ChosenShapes.ForEach(shape =>
+            SelectedShapes.ForEach(shape =>
             {
                 PShape chosedShape = (PShape)shape;
                 DrawingArea.Children.Add(chosedShape.ControlOutline());
 
-                if (ChosenShapes.Count == 1)
+                if (SelectedShapes.Count == 1)
                 {
                     List<ControlPoint> ctrlPoints = chosedShape.GetControlPoints();
                     this.CtrlPoint = ctrlPoints;
@@ -145,23 +152,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         IsDrawing = false;
         IsEditMode = false;
 
-        ChosenShapes.Clear();
-        Shapes.Clear();
-
-        SelectedShapeName = AllShapes[0].Name;
-        Preview = _factory.Factor(SelectedShapeName);
-
-        CurrentThickness = 1;
-        CurrentColorBrush = new SolidColorBrush(Colors.Red);
-        CurrentDash = null;
-
-        BackgroundImagePath = "";
-
-        DashComboBox.SelectedIndex = 0;
-        SizeComboBox.SelectedIndex = 0;
-
-        DrawingArea.Children.Clear();
-        DrawingArea.Background = new SolidColorBrush(Colors.White);
+        ClearDrawingArea();
     }
 
     private void AddBackground(string path)
@@ -176,8 +167,77 @@ public partial class MainWindow : Fluent.RibbonWindow
 
         DrawingArea.Background = brush;
     }
-    #endregion
 
+    private void ClearSelectedShapes()
+    {
+        SelectedShapes.Clear();
+        DrawOnCanvas();
+    }
+
+    private void ClearDrawingArea()
+    {
+        BackgroundImagePath = string.Empty;
+
+        Shapes.Clear();
+        SelectedShapes.Clear();
+        DrawingArea.Children.Clear();
+        DrawingArea.Background = new SolidColorBrush(Colors.White);
+    }
+
+    private void AddPreviewToCanvas()
+    {
+        PreviewDrawingArea.Children.Clear();
+        PreviewDrawingArea.Children.Add(CurrentDrawingShape.Draw(CurrentColorBrush, CurrentThickness, CurrentDash!));
+    }
+
+    private void MakePreviewStable()
+    {
+        PreviewDrawingArea.Children.Clear();
+
+        Shapes.Add(CurrentDrawingShape);
+        DrawingArea.Children.Add(CurrentDrawingShape.Draw(CurrentColorBrush, CurrentThickness, CurrentDash!));
+    }
+
+    private MessageBoxResult SaveFilePrompt()
+    {
+        if (IsSaved || DrawingArea.Children.Count == 0)
+        {
+            return MessageBoxResult.Yes;
+        }
+
+        var result = MessageBox.Show("Your current session will be lost?", "Do you want to save this working session?", MessageBoxButton.YesNoCancel);
+
+        if (MessageBoxResult.Yes == result)
+        {
+            var settings = new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.Objects
+            };
+
+            var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
+
+            StringBuilder builder = new();
+            builder.Append(serializedShapeList).Append('\n').Append($"{BackgroundImagePath}");
+            string content = builder.ToString();
+
+            var dialog = new System.Windows.Forms.SaveFileDialog
+            {
+                Filter = "JSON (*.json)|*.json"
+            };
+
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                string path = dialog.FileName;
+                File.WriteAllText(path, content);
+            }
+
+            IsSaved = true;
+
+        }
+
+        return result;
+    }
+    #endregion
 
     #region Command shortcuts
     private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
@@ -207,10 +267,10 @@ public partial class MainWindow : Fluent.RibbonWindow
             // Ctrl + A == Select all
             else if (Keyboard.IsKeyDown(Key.A))
             {
-                ChosenShapes.Clear();
+                SelectedShapes.Clear();
                 Shapes.ForEach(K =>
                 {
-                    ChosenShapes.Add(K);
+                    SelectedShapes.Add(K);
                 });
                 DrawOnCanvas();
             }
@@ -229,27 +289,37 @@ public partial class MainWindow : Fluent.RibbonWindow
             {
                 CreateNewButton_Click(sender, e);
             }
-            // Ctrl + E == Edit mode
-            else if (Keyboard.IsKeyDown(Key.E))
-            {
-                ChangeMode_Click(sender, e);
-            }
-            // Ctrl + D == Drawing mode
-            else if (Keyboard.IsKeyDown(Key.D))
+            // Ctrl + M == Toggle Modes
+            else if (Keyboard.IsKeyDown(Key.M))
             {
                 ChangeMode_Click(sender, e);
             }
             // Ctrl + X == Cut
             else if (Keyboard.IsKeyDown(Key.X))
             {
-                CopyButton_Click(sender, e);
-                Delete_Click(sender, e);
+                CutButton_Click(sender, e);
+            }
+            // Ctrl + D == Duplicate
+            else if (Keyboard.IsKeyDown(Key.D))
+            {
+                DuplicateButton_Click(sender, e);
             }
         }
 
         if (Keyboard.IsKeyDown(Key.Delete))
         {
             Delete_Click(sender, e);
+        }
+    }
+
+    private void RegisterMouseShortCuts(object sender, MouseButtonEventArgs e)
+    {
+        if (Mouse.RightButton == MouseButtonState.Pressed)
+        {
+            if (IsEditMode)
+            {
+                ClearSelectedShapes();
+            }
         }
     }
     #endregion
@@ -276,7 +346,7 @@ public partial class MainWindow : Fluent.RibbonWindow
     private void ShapeListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedShape = (IShape)ShapeListView.SelectedItem;
-        UpdateSelectedShape(selectedShape);
+        UpdateCurrentDrawingShape(selectedShape);
     }
 
     private void SizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -295,125 +365,201 @@ public partial class MainWindow : Fluent.RibbonWindow
     #region Toolbox controls (Mode, Undo, Redo, Delete, Copy, Paste)
     private void ChangeMode_Click(object sender, RoutedEventArgs e)
     {
-        this.IsEditMode = !this.IsEditMode;
+        IsEditMode = !IsEditMode;
 
         UpdateModeUI();
 
-        if (!this.IsEditMode)
+        if (!IsEditMode)
         {
-            this.ChosenShapes.Clear();
+            ClearSelectedShapes();
         }
     }
 
     private void Delete_Click(object sender, RoutedEventArgs e)
     {
-        if (this.IsEditMode)
+        if (IsEditMode)
         {
-            ChosenShapes.ForEach(k =>
+            SelectedShapes.ForEach(k =>
             {
                 Shapes.Remove(k);
             });
 
-            ChosenShapes.Clear();
-            DrawOnCanvas();
+            ClearSelectedShapes();
         }
     }
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this.IsEditMode)
+        if (IsEditMode)
         {
-            ChosenShapes.ForEach(K =>
+            CopyBuffers.Clear();
+
+            SelectedShapes.ForEach(K =>
             {
                 CopyBuffers.Add(K);
             });
         }
     }
 
-    private void PasteButton_Click(object sender, RoutedEventArgs e)
+    private void DuplicateButton_Click(object sender, RoutedEventArgs e)
     {
-        if (this.IsEditMode)
+        if (IsEditMode)
         {
+            CopyButton_Click(sender, e);
+
+            SelectedShapes.Clear();
+
             CopyBuffers.ForEach(K =>
             {
                 PShape temp = (PShape)K;
-                Shapes.Add((IShape)temp.DeepCopy());
+                IShape cloned = (IShape)temp.DeepCopy();
+                PShape copied = (PShape)cloned;
+
+                var pos = Mouse.GetPosition(DrawingArea);
+
+                copied.LeftTop.X += 10;
+                copied.LeftTop.Y += 10;
+                copied.RightBottom.X += 10;
+                copied.RightBottom.Y += 10;
+
+                Shapes.Add(cloned);
+                SelectedShapes.Add(cloned);
             });
+            DrawOnCanvas();
+        }
+    }
+
+    private void PasteButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IsEditMode)
+        {
+            SelectedShapes.Clear();
+
+            CopyBuffers.ForEach(K =>
+            {
+                PShape temp = (PShape)K;
+                IShape cloned = (IShape)temp.DeepCopy();
+                PShape copied = (PShape)cloned;
+
+                var pos = Mouse.GetPosition(DrawingArea);
+
+                if (copied.IsHovering(pos.X, pos.Y))
+                {
+                    copied.LeftTop.X += 10;
+                    copied.LeftTop.Y += 10;
+                    copied.RightBottom.X += 10;
+                    copied.RightBottom.Y += 10;
+                }
+                else
+                {
+                    var width = copied.RightBottom.X - copied.LeftTop.X;
+                    var height = copied.RightBottom.Y - copied.LeftTop.Y;
+
+                    copied.LeftTop.X = pos.X;
+                    copied.LeftTop.Y = pos.Y;
+                    copied.RightBottom.X = pos.X + width;
+                    copied.RightBottom.Y = pos.Y + height;
+                }
+
+                Shapes.Add(cloned);
+                SelectedShapes.Add(cloned);
+            });
+            DrawOnCanvas();
+
+        }
+    }
+
+    private void CutButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (IsEditMode)
+        {
+            CopyBuffers.Clear();
+
+            SelectedShapes.ForEach(K =>
+            {
+                CopyBuffers.Add(K);
+            });
+
+            SelectedShapes.ForEach(K =>
+            {
+                Shapes.Remove(K);
+            });
+
+            ClearSelectedShapes();
+
             DrawOnCanvas();
         }
     }
 
     private void UndoButton_Click(object sender, RoutedEventArgs e)
     {
-        if (Buffer.Count == 0)
+        if (Shapes.Count == 0)
+        {
             return;
+        }
 
         int lastIndex = Shapes.Count - 1;
+
         Buffer.Push(Shapes[lastIndex]);
         Shapes.RemoveAt(lastIndex);
-
         DrawOnCanvas();
     }
 
     private void RedoButton_Click(object sender, RoutedEventArgs e)
     {
         if (Buffer.Count == 0)
+        {
             return;
+        }
 
-        // Pop the last shape from buffer and add it to final list, then re-draw canvas
         Shapes.Add(Buffer.Pop());
         DrawOnCanvas();
     }
     #endregion
 
     #region Drawing Area
-    private void drawingArea_MouseDown(object sender, MouseButtonEventArgs e)
+    private void DrawingArea_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (this.AllShapes.Count == 0)
-            return;
-
-        if (this.IsEditMode)
+        if (e.ChangedButton != MouseButton.Left)
         {
-            if (Mouse.RightButton == MouseButtonState.Pressed)
-            {
-                ChosenShapes.Clear();
-                DrawOnCanvas();
-                return;
-            }
-
-            Point currentPos = e.GetPosition(DrawingArea);
-            if (ChosenShapes.Count > 0)
-            {
-                PShape chosen = (PShape)ChosenShapes[0];
-                if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
-                {
-                    for (int i = 0; i < CtrlPoint.Count; i++)
-                    {
-                        if (CtrlPoint[i].IsHovering(chosen.RotateAngle, currentPos.X, currentPos.Y))
-                        {
-                            SelectedCtrlPointEdge = CtrlPoint[i].getEdge(chosen.RotateAngle);
-                            SelectedCtrlPointType = CtrlPoint[i].Type;
-                        }
-                    }
-                }
-            }
             return;
         }
 
-        IsDrawing = true;
-        Point pos = e.GetPosition(DrawingArea);
+        if (!IsEditMode)
+        {
+            IsDrawing = true;
+            Point pos = e.GetPosition(DrawingArea);
+            CurrentDrawingShape.HandleStart(pos.X, pos.Y);
 
-        Preview.HandleStart(pos.X, pos.Y);
+            return;
+        }
+
+        Point currentPos = e.GetPosition(DrawingArea);
+
+        if (SelectedShapes.Count > 0)
+        {
+            PShape chosen = (PShape)SelectedShapes[0];
+            if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
+            {
+                for (int i = 0; i < CtrlPoint.Count; i++)
+                {
+                    if (CtrlPoint[i].IsHovering(chosen.RotateAngle, currentPos.X, currentPos.Y))
+                    {
+                        SelectedCtrlPointEdge = CtrlPoint[i].getEdge(chosen.RotateAngle);
+                        SelectedCtrlPointType = CtrlPoint[i].Type;
+                    }
+                }
+            }
+        }
     }
 
-    private void drawingArea_MouseMove(object sender, MouseEventArgs e)
+    private void DrawingArea_MouseMove(object sender, MouseEventArgs e)
     {
+        bool isMouseChange = false;
 
-        //mouse change
-        bool isChange = false;
-        if (ChosenShapes.Count == 1)
+        if (SelectedShapes.Count == 1)
         {
-            PShape shape1 = (PShape)ChosenShapes[0];
+            PShape shape1 = (PShape)SelectedShapes[0];
             Point currentPos1 = e.GetPosition(DrawingArea);
             for (int i = 0; i < CtrlPoint.Count; i++)
             {
@@ -446,23 +592,23 @@ public partial class MainWindow : Fluent.RibbonWindow
                     if (CtrlPoint[i].Type == "move" || CtrlPoint[i].Type == "rotate")
                         Mouse.OverrideCursor = Cursors.Hand;
 
-                    isChange = true;
+                    isMouseChange = true;
                     break;
                 }
             };
 
-            if (!isChange)
+            if (!isMouseChange)
+            {
                 Mouse.OverrideCursor = null;
+            }
         }
 
-
-        if (this.IsEditMode)
+        if (IsEditMode)
         {
-            if (ChosenShapes.Count < 1)
+            if (SelectedShapes.Count < 1 || (Mouse.LeftButton != MouseButtonState.Pressed))
+            {
                 return;
-
-            if (Mouse.LeftButton != MouseButtonState.Pressed)
-                return;
+            }
 
             Point currentPos = e.GetPosition(DrawingArea);
 
@@ -478,11 +624,9 @@ public partial class MainWindow : Fluent.RibbonWindow
             dx = currentPos.X - PreviousEditedX;
             dy = currentPos.Y - PreviousEditedY;
 
-            if (ChosenShapes.Count > 1)
+            if (SelectedShapes.Count > 1)
             {
-                //handle multiple shapes
-
-                ChosenShapes.ForEach(E =>
+                SelectedShapes.ForEach(E =>
                 {
                     PShape K = (PShape)E;
 
@@ -495,52 +639,24 @@ public partial class MainWindow : Fluent.RibbonWindow
             }
             else
             {
-                // handle only one shapes
-                /*
-					Console.WriteLine($"dx {dx}| dy {dy}");
-					Console.WriteLine($"currentPos {currentPos.X}| {currentPos.Y}");
-					Console.WriteLine($"x {editPreviousX}| y {editPreviousY}");
-					*/
+                PShape shape = (PShape)SelectedShapes[0];
 
-                //controlPoint detect part
-                PShape shape = (PShape)ChosenShapes[0];
                 CtrlPoint.ForEach(ctrlPoint =>
                 {
-                    List<Cord> edges = new List<Cord>()
-                    {
-                    new Cord(shape.LeftTop),      // 0 xt
-                    new CordY(shape.LeftTop),      // 1 yt
-                    new Cord(shape.RightBottom),  // 2 xb
-                    new CordY(shape.RightBottom)   // 3 yb
-						};
+                    List<Cord> edges =
+                        [
+                            new Cord(shape.LeftTop),
+                            new CordY(shape.LeftTop),
+                            new Cord(shape.RightBottom),
+                            new CordY(shape.RightBottom)
+                        ];
 
-                    List<int> rotate0 = new List<int>
-                    {
-                    0, 1, 2, 3
-                    };
-                    List<int> rotate90 = new List<int>
-                    {
-                    //xt, yt, xb, xb
-                    3, 0, 1, 2
-                    };
-                    List<int> rotate180 = new List<int>
-                    {
-                    //xt, yt, xb, xb
-                    2, 3, 0, 1
-                    };
-                    List<int> rotate270 = new List<int>
-                    {
-                    //xt, yt, xb, xb
-                    1, 2, 3, 0
-                    };
+                    List<int> rotate0 = [0, 1, 2, 3];
+                    List<int> rotate90 = [3, 0, 1, 2];
+                    List<int> rotate180 = [2, 3, 0, 1];
+                    List<int> rotate270 = [1, 2, 3, 0];
 
-                    List<List<int>> rotateList = new List<List<int>>()
-                    {
-                    rotate0,
-                    rotate90,
-                    rotate180,
-                    rotate270
-                    };
+                    List<List<int>> rotateList = [rotate0, rotate90, rotate180, rotate270];
 
                     double rot = shape.RotateAngle;
                     int index = 0;
@@ -567,8 +683,8 @@ public partial class MainWindow : Fluent.RibbonWindow
                                 index = 3;
                         };
 
-                    Trace.WriteLine($"Type: ${SelectedCtrlPointType}");
-                    Trace.WriteLine($"Edge: ${SelectedCtrlPointEdge}");
+                    //Trace.WriteLine($"Type: ${SelectedCtrlPointType}");
+                    //Trace.WriteLine($"Edge: ${SelectedCtrlPointEdge}");
 
                     if (ctrlPoint.IsBeingChosen(this.SelectedCtrlPointType, this.SelectedCtrlPointEdge, shape.RotateAngle))
                     {
@@ -684,54 +800,43 @@ public partial class MainWindow : Fluent.RibbonWindow
         if (IsDrawing)
         {
             Point pos = e.GetPosition(DrawingArea);
+            CurrentDrawingShape.HandleEnd(pos.X, pos.Y);
 
-            Preview.HandleEnd(pos.X, pos.Y);
-
-            // delete old shapes
-            DrawingArea.Children.Clear();
-
-            // redraw all shapes
-            foreach (var shape in Shapes)
-            {
-                UIElement element = shape.Draw(shape.Brush, shape.Thickness, shape.StrokeDash);
-                DrawingArea.Children.Add(element);
-            }
-
-            // lastly, draw preview object 
-            DrawingArea.Children.Add(Preview.Draw(CurrentColorBrush, CurrentThickness, CurrentDash));
+            AddPreviewToCanvas();
+            UpdateCurrentDrawingShape();
         }
     }
 
-    private void drawingArea_MouseUp(object sender, MouseButtonEventArgs e)
+    private void DrawingArea_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (this.AllShapes.Count == 0)
+        if (e.ChangedButton != MouseButton.Left)
+        {
             return;
+        }
 
         IsDrawing = false;
 
-        if (this.IsEditMode)
+        if (IsEditMode)
         {
-
-            if (e.ChangedButton != MouseButton.Left)
-                return;
-
             Point currentPos = e.GetPosition(DrawingArea);
+
             for (int i = this.Shapes.Count - 1; i >= 0; i--)
             {
                 PShape temp = (PShape)Shapes[i];
+
                 if (temp.IsHovering(currentPos.X, currentPos.Y))
                 {
                     if (Keyboard.IsKeyDown(Key.LeftCtrl))
                     {
-                        if (!ChosenShapes.Contains(Shapes[i]))
-                            this.ChosenShapes.Add(Shapes[i]);
+                        if (!SelectedShapes.Contains(Shapes[i]))
+                            this.SelectedShapes.Add(Shapes[i]);
                         else
-                            this.ChosenShapes.Remove(Shapes[i]);
+                            this.SelectedShapes.Remove(Shapes[i]);
                     }
                     else
                     {
-                        ChosenShapes.Clear();
-                        this.ChosenShapes.Add(Shapes[i]);
+                        SelectedShapes.Clear();
+                        SelectedShapes.Add(Shapes[i]);
                     }
 
                     DrawOnCanvas();
@@ -742,86 +847,56 @@ public partial class MainWindow : Fluent.RibbonWindow
             this.PreviousEditedX = -1;
             this.PreviousEditedY = -1;
 
-            // Restore SelectedCtrlPointEdge to Empty
             this.SelectedCtrlPointEdge = String.Empty;
             this.SelectedCtrlPointType = String.Empty;
-            return;
         }
-
-        Point pos = e.GetPosition(DrawingArea);
-        Preview.HandleEnd(pos.X, pos.Y);
-
-        // Ddd to shapes list & save it color + thickness
-        Shapes.Add(Preview);
-        Preview.Brush = CurrentColorBrush;
-        Preview.Thickness = CurrentThickness;
-        Preview.StrokeDash = CurrentDash;
-
-        // Draw new thing -> isSaved = false
-        IsSaved = false;
-
-        // Move to new preview 
-        Preview = _factory.Factor(SelectedShapeName);
-
-        // Re-draw the canvas
-
-        DrawOnCanvas();
-    }
-
-    private void drawingArea_MouseLeave(object sender, MouseEventArgs e)
-    {
-        //this._isDrawing = false;
-    }
-    private void drawingArea_MouseEnter(object sender, MouseEventArgs e)
-    {
-        if (this.AllShapes.Count == 0)
-            return;
-
-        if (this.IsEditMode)
-            return;
-
-        if (Mouse.LeftButton != MouseButtonState.Pressed && this.IsDrawing)
+        else
         {
-            //wish there is a better solution like
-            // this.drawingArea_MouseUp(sender, e)
-            // but e is not MouseButtonEventArgs (;-;)
+            Point pos = e.GetPosition(DrawingArea);
+            CurrentDrawingShape.HandleEnd(pos.X, pos.Y);
+
+            MakePreviewStable();
+
+            CurrentDrawingShape = _factory.Factor(CurrentShapeName);
+
+            IsSaved = false;
+        }
+    }
+
+    private void DrawingArea_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (IsDrawing)
+        {
             IsDrawing = false;
 
             Point pos = e.GetPosition(DrawingArea);
-            Preview.HandleEnd(pos.X, pos.Y);
+            CurrentDrawingShape.HandleEnd(pos.X - 1, pos.Y - 1);
 
-            // Ddd to shapes list & save it color + thickness
-            Shapes.Add(Preview);
-            Preview.Brush = CurrentColorBrush;
-            Preview.Thickness = CurrentThickness;
-            Preview.StrokeDash = CurrentDash;
+            UpdateCurrentDrawingShape();
+            Shapes.Add(CurrentDrawingShape);
 
-            // Draw new thing -> isSaved = false
+            MakePreviewStable();
+
+            CurrentDrawingShape = _factory.Factor(CurrentShapeName);
+
             IsSaved = false;
-
-            // Move to new preview 
-            Preview = _factory.Factor(SelectedShapeName);
-
-            // Re-draw the canvas
-            DrawOnCanvas();
         }
     }
     #endregion
 
     #region File Actions
-    // TODO: Update this method
     private void CreateNewButton_Click(object sender, RoutedEventArgs e)
     {
-        if (BackgroundImagePath.Length > 0 && Shapes.Count == 0)
+        if (!string.IsNullOrEmpty(BackgroundImagePath) && Shapes.Count == 0)
         {
-            BackgroundImagePath = "";
+            BackgroundImagePath = string.Empty;
             DrawingArea.Background = new SolidColorBrush(Colors.White);
         }
-        if (Shapes.Count == 0)
+
+        if (DrawingArea.Children.Count == 0)
         {
             return;
         }
-
 
         if (IsSaved)
         {
@@ -829,54 +904,20 @@ public partial class MainWindow : Fluent.RibbonWindow
             return;
         }
 
-        var result = MessageBox.Show("Do you want to save current file?", "Unsaved changes detected", MessageBoxButton.YesNoCancel);
+        SaveFilePrompt();
 
-        if (MessageBoxResult.Yes == result)
-        {
-            // save then reset
-
-            // save 
-            var settings = new JsonSerializerSettings()
-            {
-                TypeNameHandling = TypeNameHandling.Objects
-            };
-
-            var serializedShapeList = JsonConvert.SerializeObject(Shapes, settings);
-
-            // experience 
-            StringBuilder builder = new StringBuilder();
-            builder.Append(serializedShapeList).Append("\n").Append($"{BackgroundImagePath}");
-            string content = builder.ToString();
-
-
-            var dialog = new System.Windows.Forms.SaveFileDialog();
-
-            dialog.Filter = "JSON (*.json)|*.json";
-
-            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                string path = dialog.FileName;
-                File.WriteAllText(path, content);
-            }
-
-            // reset
-            ResetToDefault();
-            IsSaved = true;
-        }
-        else if (MessageBoxResult.No == result)
-        {
-            //reset
-            ResetToDefault();
-            return;
-        }
-        else if (MessageBoxResult.Cancel == result)
-        {
-            return;
-        }
+        ResetToDefault();
     }
 
     private void OpenFileButton_Click(object sender, RoutedEventArgs e)
     {
+        bool isCancelled = SaveFilePrompt() == MessageBoxResult.Cancel;
+
+        if (isCancelled)
+        {
+            return;
+        }
+
         var dialog = new System.Windows.Forms.OpenFileDialog
         {
             Filter = "JSON (*.json)|*.json"
@@ -902,7 +943,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             };
 
             Shapes.Clear();
-            ChosenShapes.Clear();
+            SelectedShapes.Clear();
             List<IShape> savedShapes = JsonConvert.DeserializeObject<List<IShape>>(json, settings);
 
             foreach (var item in savedShapes!)
