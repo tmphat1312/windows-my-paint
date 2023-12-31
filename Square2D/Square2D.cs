@@ -6,7 +6,7 @@ using System.Windows.Shapes;
 
 namespace Shapes;
 
-public class Square2D : CShape, IShape
+public class Square2D : PShape, IShape
 {
     public string Name => "Square";
 
@@ -94,7 +94,7 @@ public class Square2D : CShape, IShape
     {
         return new Square2D();
     }
-    override public CShape DeepCopy()
+    override public PShape DeepCopy()
     {
         Square2D temp = new Square2D();
 

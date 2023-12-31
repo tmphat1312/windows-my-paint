@@ -6,22 +6,17 @@ using System.Windows.Shapes;
 
 namespace Shapes;
 
-public class Circle2D : CShape, IShape
+public class Circle2D : PShape, IShape
 {
-
-    public DoubleCollection StrokeDash { get; set; }
-
-
-    public SolidColorBrush Brush { get; set; }
     public string Name => "Circle";
     public string Icon => "Assets/Shapes/circle.png";
-    public int Thickness { get; set; }
 
     public void HandleStart(double x, double y)
     {
         LeftTop.X = x;
         LeftTop.Y = y;
     }
+
     public void HandleEnd(double x, double y)
     {
         RightBottom.X = x;
@@ -93,7 +88,8 @@ public class Circle2D : CShape, IShape
     {
         return new Circle2D();
     }
-    override public CShape DeepCopy()
+
+    override public PShape DeepCopy()
     {
         Circle2D temp = new Circle2D();
 

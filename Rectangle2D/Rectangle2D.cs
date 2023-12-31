@@ -6,15 +6,10 @@ using System.Windows.Shapes;
 
 namespace Shapes;
 
-public class Rectangle2D : CShape, IShape
+public class Rectangle2D : PShape, IShape
 {
-    public SolidColorBrush Brush { get; set; }
-
-    public DoubleCollection StrokeDash { get; set; }
     public string Icon => "Assets/Shapes/rectangle.png";
     public string Name => "Rectangle";
-
-    public int Thickness { get; set; }
 
     public void HandleStart(double x, double y)
     {
@@ -63,7 +58,7 @@ public class Rectangle2D : CShape, IShape
         return new Rectangle2D();
     }
 
-    override public CShape DeepCopy()
+    override public PShape DeepCopy()
     {
         Rectangle2D temp = new Rectangle2D();
 

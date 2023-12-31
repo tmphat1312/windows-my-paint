@@ -16,6 +16,7 @@ namespace Paint;
 
 public partial class MainWindow : Fluent.RibbonWindow
 {
+    private readonly ShapeFactory _factory = ShapeFactory.Instance;
     public MainViewModel ViewModel { get; set; } = new MainViewModel();
 
     public MainWindow()
@@ -55,12 +56,11 @@ public partial class MainWindow : Fluent.RibbonWindow
     #endregion
 
     #region Canvas drawing variables
-    private readonly ShapeFactory _factory = ShapeFactory.Instance;
     public List<IShape> AllShapes = [];
     public string BackgroundImagePath = string.Empty;
     #endregion
 
-    private void RibbonWindow_Loaded(object sender, RoutedEventArgs e)
+    private void PaintWindow_Loaded(object sender, RoutedEventArgs e)
     {
         AllShapes = (List<IShape>)_factory.Shapes;
 
@@ -81,25 +81,26 @@ public partial class MainWindow : Fluent.RibbonWindow
         KeyDown += RegisterKeyBoardShortCuts;
     }
 
-    // TODO: Add shortcuts for commands
+    // TODO: Add more shortcuts for commands
+    #region Command shortcuts
     private void RegisterKeyBoardShortCuts(object sender, KeyEventArgs e)
     {
-        //can remove
-        switch (e.Key)
+        // Ctrl + Z == Undo
+        if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.Z))
         {
-            case Key.C:
-                {
-                    if (Keyboard.IsKeyDown(Key.X))
-                        Console.WriteLine("AAA");
-                    else
-                        Console.WriteLine("A");
-                    break;
-                }
+            undoButton_Click(sender, e);
         }
-        return;
+    }
+    #endregion
+
+    #region Update Color Brush
+    private void SolidColorsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        var selectedColor = SolidColorsListView.SelectedItem as SolidColorBrush;
+        CurrentColorBrush = selectedColor!;
     }
 
-    private void editColorButton_Click(object sender, RoutedEventArgs e)
+    private void EditColorButton_Click(object sender, RoutedEventArgs e)
     {
         using System.Windows.Forms.ColorDialog colorPicker = new();
 
@@ -108,6 +109,8 @@ public partial class MainWindow : Fluent.RibbonWindow
             CurrentColorBrush = new SolidColorBrush(Color.FromRgb(colorPicker.Color.R, colorPicker.Color.G, colorPicker.Color.B));
         }
     }
+    #endregion
+
 
     private void createNewButton_Click(object sender, RoutedEventArgs e)
     {
@@ -363,7 +366,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         bool isChange = false;
         if (ChosenShapes.Count == 1)
         {
-            CShape shape1 = (CShape)ChosenShapes[0];
+            PShape shape1 = (PShape)ChosenShapes[0];
             Point currentPos1 = e.GetPosition(drawingArea);
             for (int i = 0; i < CtrlPoint.Count; i++)
             {
@@ -434,7 +437,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 
                 ChosenShapes.ForEach(E =>
                 {
-                    CShape K = (CShape)E;
+                    PShape K = (PShape)E;
 
                     K.LeftTop.X = K.LeftTop.X + dx;
                     K.LeftTop.Y = K.LeftTop.Y + dy;
@@ -453,7 +456,7 @@ public partial class MainWindow : Fluent.RibbonWindow
 					*/
 
                 //controlPoint detect part
-                CShape shape = (CShape)ChosenShapes[0];
+                PShape shape = (PShape)ChosenShapes[0];
                 CtrlPoint.ForEach(ctrlPoint =>
                 {
                     List<Cord> edges = new List<Cord>()
@@ -668,7 +671,7 @@ public partial class MainWindow : Fluent.RibbonWindow
             Point currentPos = e.GetPosition(drawingArea);
             for (int i = this.Shapes.Count - 1; i >= 0; i--)
             {
-                CShape temp = (CShape)Shapes[i];
+                PShape temp = (PShape)Shapes[i];
                 if (temp.IsHovering(currentPos.X, currentPos.Y))
                 {
                     if (Keyboard.IsKeyDown(Key.LeftCtrl))
@@ -779,60 +782,6 @@ public partial class MainWindow : Fluent.RibbonWindow
                 break;
         }
     }
-
-    //#region color button
-
-    //private void btnBasicBlack_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-    //}
-
-    //private void btnBasicGray_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(192, 192, 192));
-    //}
-
-    //private void btnBasicRed_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
-    //}
-
-    //private void btnBasicOrange_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
-    //}
-
-    //private void btnBasicBlue_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 0, 255));
-    //}
-
-    //private void btnBasicGreen_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(0, 255, 0));
-    //}
-
-    //private void btnBasicPurple_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(191, 64, 191));
-    //}
-
-    //private void btnBasicPink_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 182, 193));
-    //}
-
-    //private void btnBasicYellow_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(255, 255, 0));
-    //}
-
-    //private void btnBasicBrown_Click(object sender, RoutedEventArgs e)
-    //{
-    //    CurrentColorBrush = new SolidColorBrush(Color.FromRgb(160, 82, 45));
-    //}
-
-    //#endregion
 
     private void ShapeListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -971,7 +920,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         {
             ChosenShapes.ForEach(shape =>
             {
-                CShape chosedShape = (CShape)shape;
+                PShape chosedShape = (PShape)shape;
                 drawingArea.Children.Add(chosedShape.ControlOutline());
 
                 //if only chose one shape
@@ -1031,7 +980,7 @@ public partial class MainWindow : Fluent.RibbonWindow
         {
             CopyBuffers.ForEach(K =>
             {
-                CShape temp = (CShape)K;
+                PShape temp = (PShape)K;
                 Shapes.Add((IShape)temp.DeepCopy());
             });
             RedrawCanvas();

@@ -9,7 +9,7 @@
         Title="My CroSoft Paint" 
         Height="700" 
         Width="1250" 
-        Loaded="RibbonWindow_Loaded">
+        Loaded="PaintWindow_Loaded">
 
     <!--Styles-->
     <Fluent:RibbonWindow.Resources>
@@ -214,75 +214,7 @@
                 <!--Colors-->
                 <Fluent:RibbonGroupBox Header="Colors" Width="300" >
                     <StackPanel Orientation="Horizontal">
-                        <!--<Grid  Margin="20,5,0,2" Width="200">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*" />
-                                <ColumnDefinition Width="1*" />
-                                <ColumnDefinition Width="1*" />
-                                <ColumnDefinition Width="1*" />
-                                <ColumnDefinition Width="1*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="1*" />
-                                <RowDefinition Height="1*" />
-                            </Grid.RowDefinitions>
-
-
-                            <Border Grid.Column="0" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
-                                                                Width="28" Height="28"/>
-                            <Button Name="btnBasicBlack" Grid.Column="0" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Black" Click="btnBasicBlack_Click"></Button>
-
-
-                            <Border Grid.Column="1" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
-                                                                Width="28" Height="28"/>
-                            <Button Name="btnBasicGray" Grid.Column="1" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Gray" Click="btnBasicGray_Click"></Button>
-
-                            <Border Grid.Column="2" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
-                                                            Width="28" Height="28"/>
-                            <Button Name="btnBasicRed" Grid.Column="2" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Red" Click="btnBasicRed_Click"></Button>
-
-                            <Border Grid.Column="3" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
-                                                        Width="28" Height="28"/>
-                            <Button Name="btnBasicOrange" Grid.Column="3" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Orange" Click="btnBasicOrange_Click"></Button>
-
-                            <Border Grid.Column="4" Grid.Row="0" BorderThickness="1" BorderBrush="Black"
-                                                            Width="28" Height="28"/>
-                            <Button Name="btnBasicYellow" Grid.Column="4" Grid.Row="0" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                                Background="Yellow" Click="btnBasicYellow_Click"></Button>
-
-
-                            <Border Grid.Column="0" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
-                                                    Width="28" Height="28"/>
-                            <Button Name="btnBasicBlue" Grid.Column="0" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Blue" Click="btnBasicBlue_Click"></Button>
-
-                            <Border Grid.Column="1" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
-                                                    Width="28" Height="28"/>
-                            <Button Name="btnBasicGreen" Grid.Column="1" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Green" Click="btnBasicGreen_Click"></Button>
-
-                            <Border Grid.Column="2" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
-                                                Width="28" Height="28"/>
-                            <Button Name="btnBasicPurple" Grid.Column="2" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                                    Background="Purple" Click="btnBasicPurple_Click">
-                            </Button>
-
-                            <Border Grid.Column="3" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
-                                            Width="28" Height="28"/>
-                            <Button Name="btnBasicPink" Grid.Column="3" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                            Background="Pink" Click="btnBasicPink_Click"></Button>
-
-                            <Border Grid.Column="4" Grid.Row="1" BorderThickness="1" BorderBrush="Black"
-                                                Width="28" Height="28"/>
-                            <Button Name="btnBasicBrown" Grid.Column="4" Grid.Row="1" Width="25" Height="25" Style="{StaticResource DisableMouseOver}"
-                                                Background="Brown" Click="btnBasicBrown_Click"></Button>
-                        </Grid>-->
-                        
-                        <ListView Width="140" Margin="0,4,0,0" ItemsSource="{Binding Colors}" x:Name="SolidColorsListView" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListView Width="140" Margin="0,4,0,0" ItemsSource="{Binding Colors}" SelectedIndex="0" x:Name="SolidColorsListView" SelectionChanged="SolidColorsListView_SelectionChanged" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.Resources>
                                 <DataTemplate DataType="{x:Type SolidColorBrush}">
                                     <Border BorderThickness="1" BorderBrush="Black" Width="25" Height="25" Background="{Binding}" CornerRadius="1000"/>
@@ -295,9 +227,9 @@
                             </ListView.ItemsPanel>
                         </ListView>
 
-                        <Fluent:Button Name="editColorButton" Header="Picker" Click="editColorButton_Click" Padding="4,4,4,0" Margin="0,6,0,0">
+                        <Fluent:Button Name="EditColorButton" Header="Picker" Click="EditColorButton_Click" Padding="4,4,4,0" Margin="0,6,0,0">
                             <Fluent:Button.LargeIcon>
-                                <Image Source="Images/color_wheel.png" />
+                                <Image Source="Assets/Icons/color-picker.png" />
                             </Fluent:Button.LargeIcon>
                         </Fluent:Button>
                     </StackPanel>
