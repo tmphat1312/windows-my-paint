@@ -539,10 +539,10 @@ public partial class MainWindow : Fluent.RibbonWindow
         if (SelectedShapes.Count > 0)
         {
             PShape chosen = (PShape)SelectedShapes[0];
+
             if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
             {
-                PShape chosen = (PShape)ChosenShapes[0];
-                if (CtrlPoint.Count > 0 && SelectedCtrlPointType == String.Empty && SelectedCtrlPointEdge == String.Empty)
+                for (int i = 0; i < CtrlPoint.Count; i++)
                 {
                     if (CtrlPoint[i].IsHovering(chosen.RotateAngle, currentPos.X, currentPos.Y))
                     {
