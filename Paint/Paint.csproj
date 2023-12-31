@@ -6,9 +6,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\app-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\app-icon.png" />
     <None Remove="Assets\Icons\add.png" />
     <None Remove="Assets\Icons\color-picker.png" />
     <None Remove="Assets\Icons\copy.png" />
@@ -34,6 +36,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Assets\app-icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app-icon.png" />
     <Resource Include="Assets\Icons\color-picker.png" />
     <Resource Include="Assets\Icons\cut.png" />
     <Resource Include="Assets\Icons\duplicate.png" />
