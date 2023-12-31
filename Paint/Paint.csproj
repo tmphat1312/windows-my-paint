@@ -52,12 +52,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Circle2D\Circle2D.csproj" />
+    <ProjectReference Include="..\CircleShape\CircleShape.csproj" />
     <ProjectReference Include="..\Contract\Contract.csproj" />
-    <ProjectReference Include="..\Ellipse2D\Ellipse2D.csproj" />
-    <ProjectReference Include="..\Line2D\Line2D.csproj" />
-    <ProjectReference Include="..\Rectangle2D\Rectangle2D.csproj" />
-    <ProjectReference Include="..\Square2D\Square2D.csproj" />
+    <ProjectReference Include="..\EllipseShape\EllipseShape.csproj" />
+    <ProjectReference Include="..\LineShape\LineShape.csproj" />
+    <ProjectReference Include="..\RectangleShape\RectangleShape.csproj" />
+    <ProjectReference Include="..\SquareShape\SquareShape.csproj" />
   </ItemGroup>
 
   <ItemGroup>
